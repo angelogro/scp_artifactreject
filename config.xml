@@ -1,0 +1,49 @@
+<Data>
+	<Paths>
+		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
+		<Resource_Folder>Resources</Resource_Folder>
+		<ArtifactOrder>/home/angelo/ml/SCP_NF/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
+		<TrialSettings>/home/angelo/ml/SCP_NF/scp_artifactreject/Settings_Trial/test.xml</TrialSettings>
+		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
+		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
+		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>
+	</Paths>
+	<ArtefactCategories>
+		<Blinzeln>
+			<ID>0</ID>
+			<Text>Blinzeln</Text>
+		</Blinzeln>
+		<FussBewegen>
+			<ID>1</ID>
+			<Text>F&#252;&#223;e gegen Boden dr&#252;cken</Text>
+		</FussBewegen>
+		<ZungeGegenGaumen>
+			<ID>2</ID>
+			<Text>Zunge gegen Gaumen dr&#252;cken</Text>
+		</ZungeGegenGaumen>
+		<ForciertesAtmen>
+			<ID>3</ID>
+			<Text>Forciertes Atmen</Text>
+		</ForciertesAtmen>
+		<ZaehneBeissen>
+			<ID>4</ID>
+			<Text>Z&#228;hne aufeinander bei&#223;en</Text>
+		</ZaehneBeissen>
+		<AugenVerdrehen>
+			<ID>5</ID>
+			<Text>Augen verdrehen</Text>
+		</AugenVerdrehen>
+		<LuftAnhalten>
+			<ID>6</ID>
+			<Text>Luft anhalten/pressen</Text>
+		</LuftAnhalten>
+		<NaseRuempfen>
+			<ID>7</ID>
+			<Text>Nase r&#252;mpfen</Text>
+		</NaseRuempfen>
+		<Schlucken>
+			<ID>8</ID>
+			<Text>Schlucken</Text>
+		</Schlucken>
+	</ArtefactCategories>
+</Data>

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Data>
+    <Order>
+        <LuftAnhalten></LuftAnhalten>
+        <NaseRuempfen></NaseRuempfen>
+        <Schlucken></Schlucken>
+    </Order>
+    <PauseInBetweenTrials>
+        <Minute>0</Minute>
+        <Second>15</Second>
+    </PauseInBetweenTrials>
+</Data>
