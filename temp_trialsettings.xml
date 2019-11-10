@@ -5,7 +5,7 @@
             <sbTrialDuration>1</sbTrialDuration>
             <sbStimulusDuration>3</sbStimulusDuration>
             <sbPause>3</sbPause>
-            <cbRandomizeStimuli>0</cbRandomizeStimuli>
+            <cbRandomizeStimuli>2</cbRandomizeStimuli>
         </UserDefined>
         <Random Checked="False"/>
     </TrialSettings>

@@ -239,6 +239,7 @@ class SettingTrial(QDialog):
         stream.writeTextElement(self.sbStimulusDuration.objectName(),str(self.sbStimulusDuration.value()))
         stream.writeTextElement(self.sbPause.objectName(),str(self.sbPause.value()))
         stream.writeTextElement(self.cbRandomizeStimuli.objectName(),str(self.cbRandomizeStimuli.checkState()))
+        print(self.cbRandomizeStimuli.checkState())
         stream.writeEndElement()
         stream.writeStartElement('Random')
         stream.writeAttribute('Checked',str(self.rbRandom.isChecked()))

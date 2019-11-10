@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_ArtifactOrder/four_cat</ArtifactOrder>
-		<TrialSettings>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_Trial/no_random</TrialSettings>
+		<ArtifactOrder>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
+		<TrialSettings>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_Trial/test.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>

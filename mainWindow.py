@@ -12,7 +12,7 @@ from PyQt5.QtGui import QIcon
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.Qt import QFileInfo,QProxyStyle,QStyle,QMessageBox
 from PyQt5.QtCore import Qt,QRect
-from PyQt5.QtGui import QPainter, QColor, QFont, QPdfWriter,QFontMetrics
+from PyQt5.QtGui import QPainter, QColor, QFont, QPdfWriter,QFontMetrics,QBrush
 from xml_read import XML_Read
 from PyQt5 import QtCore
 from settingsWindows import SettingArtefactOrder,SettingTrial
@@ -76,7 +76,7 @@ class MainWindow(QMainWindow):
 
         """
 
-        uic.loadUi(os.path.join(self.XML_Read.getValue(['Paths','Designer_File_Folder']),'mainWindow.ui'),self)
+        uic.loadUi(os.path.join(self.XML_Read.getValue(['Paths','Designer_File_Folder']),'mainWindow_circle.ui'),self)
         self.actionArtefact_Order.triggered.connect(self.openSettingArtefactOrder)
         self.actionStimulus_Order.triggered.connect(self.openSettingTrial)
         self.actionStart.triggered.connect(self.startPresentationClicked)
@@ -87,8 +87,14 @@ class MainWindow(QMainWindow):
         self.pathArt = None
         self.pathTrial = None
         self.getSettingsPaths()
-        self.hideWidgets()
+        #self.hideWidgets()
         self.show()
+        self.lblCircle = QLabelCircle()
+        self.displayWidget.addWidget(self.lblCircle)#,Qt.Alignment(Qt.AlignHCenter,Qt.AlignVCenter))
+        
+        self.displayWidget.setCurrentWidget(self.lblCircle)
+        
+        
 
     def showWidgets(self):
         self.lblCurrentArtifactText.show()
@@ -104,7 +110,7 @@ class MainWindow(QMainWindow):
         self.lblCurrentArtifact.hide()
         self.lblNextArtifact.hide()
         self.lblInfo.hide()
-        self.lcdNumber.hide()
+        #self.lcdNumber.hide()
 
     def getSettingsPaths(self):
         pathArt = self.XML_Read.getValue(['Paths','ArtifactOrder'])
@@ -195,6 +201,7 @@ class MainWindow(QMainWindow):
 
 
     def displayInfo(self,text,count):
+        # distinguish between circular and numeral representation
         blnLastArtifactReached = False
         if text!=PAUSEBETWEENTRIALSTEXT and text!=PAUSETEXT:
             self.lblCurrentArtifact.setText(self.lblNextArtifact.text())
@@ -204,9 +211,24 @@ class MainWindow(QMainWindow):
                 self.lblNextArtifact.setText("")
                 blnLastArtifactReached = True
         self.lblInfo.setText(text)
+        #if hasattr(self,'lcdNumber'):
+        #    self.displayInfoLCD(text,count)
+        #else:
+        self.displayInfoCircle(text,count)
+    
+    
+    def displayInfoLCD(self,text,count):    
+        
         self.lcdNumber.display(count)
         for i in range(count-1):
             Timer(count-(i+1),self.lcdNumber.display,[i+1]).start()
+            
+    def displayInfoCircle(self,text,count):
+        #self.lblCircle.setAngle(0)
+        n_ticks_per_second = 10
+        for i in range(count*n_ticks_per_second):
+            Timer(i/n_ticks_per_second,self.lblCircle.setAngle,[360*i/(n_ticks_per_second*count)]).start()
+        
 
     def makeTimeTable(self,settingOrderPath,settingTrialPath):
         self.timeTable = TimeTable(settingOrderPath,settingTrialPath,self.XML_Read)
@@ -247,9 +269,11 @@ class TimeTable():
 
         artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
         all_stimuli_list = [ele for ele in artifacts for _ in range(amount_of_stimuli)]
-        if randomizeStimuli == Qt.CheckState(Qt.Checked):
-            random.shuffle(all_stimuli_list)
 
+        if int(randomizeStimuli) == Qt.CheckState(Qt.Checked):
+            print("yes")
+            random.shuffle(all_stimuli_list)
+        print(all_stimuli_list)
         time = 0
 
         for i in range(len(artifacts)):
@@ -276,6 +300,22 @@ class TimeTable():
             for row in self.lstOrder:
                 writer.writerow(row)
 
+class QLabelCircle(QWidget):
+    def __init__(self,*args, **kwargs):
+        super().__init__( *args, **kwargs)
+        self.setAngle(0)
+        
+    def paintEvent(self,e):
+        painter = QtGui.QPainter(self)
+        pen = QtGui.QPen()
+        pen.setColor(QtGui.QColor('blue'))
+        pen.setWidth(10)
+        painter.setPen(pen)
+        painter.drawArc(10,10,80,80,0,16*self.angle);
+        
+    def setAngle(self, angle):
+        self.angle = angle
+        self.update()
 
 
 
