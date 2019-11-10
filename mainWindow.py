@@ -158,8 +158,9 @@ class MainWindow(QMainWindow):
 
     def startPresentation(self):
         self.showWidgets()
-        self.artifact_iter = iter(self.timeTable.artifactOrder)
-        self.lblCurrentArtifact.setText(self.artifact_iter.__next__())
+        type_list = [row['type']for row in self.timeTable.lstOrder]
+        self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
+
         self.lblNextArtifact.setText(self.artifact_iter.__next__())
 
         for row in self.timeTable.lstOrder:
@@ -170,13 +171,13 @@ class MainWindow(QMainWindow):
 
     def startPresentationFromFile(self):
         self.showWidgets()
-
+        
+        # Extract all artifacts which are not pauses from csv file
         with open(self.stimulusFilename, mode='r',newline='') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             next(csv_reader)
             lst=[row[2] for row in csv_reader]
-            self.artifact_iter = iter(set(filter(lambda x: x[0].isupper(),lst)))
-            self.lblCurrentArtifact.setText(self.artifact_iter.__next__())
+            self.artifact_iter = iter(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,lst))
             self.lblNextArtifact.setText(self.artifact_iter.__next__())
 
         with open(self.stimulusFilename, mode='r',newline='') as csv_file:
@@ -195,7 +196,7 @@ class MainWindow(QMainWindow):
 
     def displayInfo(self,text,count):
         blnLastArtifactReached = False
-        if text==PAUSEBETWEENTRIALSTEXT:
+        if text!=PAUSEBETWEENTRIALSTEXT and text!=PAUSETEXT:
             self.lblCurrentArtifact.setText(self.lblNextArtifact.text())
             try:
                 self.lblNextArtifact.setText(self.artifact_iter.__next__())
@@ -245,8 +246,9 @@ class TimeTable():
         amount_of_stimuli = ceil(int(trialDuration)*60/(int(stimulusDuration)+int(pauseDuration)))
 
         artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
-        all_stimuli_list = artifacts*amount_of_stimuli
-        random.shuffle(all_stimuli_list)
+        all_stimuli_list = [ele for ele in artifacts for _ in range(amount_of_stimuli)]
+        if randomizeStimuli == Qt.CheckState(Qt.Checked):
+            random.shuffle(all_stimuli_list)
 
         time = 0
 
@@ -259,11 +261,7 @@ class TimeTable():
 
                 self.lstOrder.append({'start_time':str(time),'end_time':str(time+int(pauseDuration)),'type':PAUSETEXT})
                 time+=int(pauseDuration)
-
-                if randomizeStimuli == Qt.CheckState(Qt.Unchecked):
-                    self.lstOrder.append({'start_time':str(time),'end_time':str(time+int(stimulusDuration)),'type':artifacts[i]})
-                else:
-                    self.lstOrder.append({'start_time':str(time),'end_time':str(time+int(stimulusDuration)),
+                self.lstOrder.append({'start_time':str(time),'end_time':str(time+int(stimulusDuration)),
                                           'type':all_stimuli_list[num+i*amount_of_stimuli]})
                 time+=int(stimulusDuration)
 
