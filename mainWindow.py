@@ -20,7 +20,7 @@ import sys
 import csv
 from math import ceil
 import sched, time
-from threading import Timer
+from threading import Timer,Thread
 import _thread
 
 PAUSETEXT = 'pause'
@@ -218,20 +218,25 @@ class MainWindow(QMainWindow):
         self.showWidgets()
         self.timingThreads = []
         type_list = [row['type']for row in self.timeTable.lstOrder]
+        
+        # Takes all entries of the list which describe an artifact
         self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
 
         self.lblNextArtifact.setText(self.artifact_iter.__next__())
 
-        for row in self.timeTable.lstOrder:
-            t=Timer(int(row['start_time']),self.displayInfo,[row['type'],int(row['end_time'])-int(row['start_time'])])
+        self.display_item_iter = iter(self.timeTable.lstOrder)
+        self.runNextItem()
+        
+
+    def runNextItem(self):
+        try:
+            current_item = self.display_item_iter.__next__()
+            _thread.start_new_thread(self.displayInfo,(current_item['type'],int(current_item['end_time'])-int(current_item['start_time'])))
+            t =Timer(int(current_item['end_time'])-int(current_item['start_time']),self.runNextItem)
             t.start()
             self.timingThreads.append(t)
-            if row==self.timeTable.lstOrder[-1]:
-                #Program finished
-                
-                t=Timer(int(row['end_time']),self.hideWidgets)
-                t.start()
-                self.timingThreads.append(t)
+        except StopIteration:
+            self.hideWidgets()
 
     def startPresentationFromFile(self):
         self.showWidgets()
@@ -259,15 +264,14 @@ class MainWindow(QMainWindow):
 
 
     def displayInfo(self,text,count):
-        # distinguish between circular and numeral representation
-        blnLastArtifactReached = False
+        # distinguish between circular and numerical representation
         if text!=PAUSEBETWEENTRIALSTEXT and text!=PAUSETEXT:
             self.lblCurrentArtifact.setText(self.lblNextArtifact.text())
             try:
                 self.lblNextArtifact.setText(self.artifact_iter.__next__())
             except StopIteration:
                 self.lblNextArtifact.setText("")
-                blnLastArtifactReached = True
+
         self.lblInfo.setText(text)
         
         if self.displayWidget.currentWidget()==self.lcdNumber:
@@ -276,13 +280,16 @@ class MainWindow(QMainWindow):
         elif self.displayWidget.currentWidget()==self.lblCircle:
             print('circle display')
             self.displayInfoCircle(text,count)
+        
     
     
     def displayInfoLCD(self,text,count):
         print(count)
         self.lcdNumber.display(count)
         for i in range(count-1):
-            Timer(count-(i+1),self.lcdNumber.display,[i+1]).start()
+            t = Timer(count-(i+1),self.lcdNumber.display,[i+1])
+            t.start()
+            self.timingThreads.append(t)
             
     def displayInfoCircle(self,text,count):
         _thread.start_new_thread(self.lblCircle.startAnimationThread,(count,))
