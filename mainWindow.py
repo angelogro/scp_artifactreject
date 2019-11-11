@@ -5,7 +5,7 @@ Created on Thu Sep 19 11:29:49 2019
 """
 import random
 from PyQt5 import QtGui,uic
-from PyQt5.QtWidgets import  QGridLayout,QLabel, QAction, QTextEdit, QFontDialog, QColorDialog, QFileDialog, QTableWidget
+from PyQt5.QtWidgets import  QGridLayout,QLabel, QAction, QTextEdit, QFontDialog, QColorDialog, QFileDialog, QTableWidget,QLCDNumber
 from PyQt5.QtWidgets import QApplication,QLineEdit,QDialog,QScrollArea,QWidget,QStackedWidget, QMainWindow, QPlainTextEdit
 import os
 from PyQt5.QtGui import QIcon
@@ -21,6 +21,7 @@ import csv
 from math import ceil
 import sched, time
 from threading import Timer
+import _thread
 
 PAUSETEXT = 'pause'
 PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
@@ -87,12 +88,15 @@ class MainWindow(QMainWindow):
         self.pathArt = None
         self.pathTrial = None
         self.getSettingsPaths()
-        #self.hideWidgets()
-        self.show()
-        self.lblCircle = QLabelCircle()
-        self.displayWidget.addWidget(self.lblCircle)#,Qt.Alignment(Qt.AlignHCenter,Qt.AlignVCenter))
         
+        self.lblCircle = QLabelCircle()
+        self.lcdNumber = QLCDNumber()
+        self.displayWidget.insertWidget(0,self.lblCircle)#,Qt.Alignment(Qt.AlignHCenter,Qt.AlignVCenter))
+        self.displayWidget.insertWidget(1,self.lcdNumber)
         self.displayWidget.setCurrentWidget(self.lblCircle)
+        
+        self.hideWidgets()
+        self.show()
         
         
 
@@ -103,6 +107,7 @@ class MainWindow(QMainWindow):
         self.lblNextArtifact.show()
         self.lblInfo.show()
         self.lcdNumber.show()
+        self.lblCircle.show()
 
     def hideWidgets(self):
         self.lblCurrentArtifactText.hide()
@@ -110,7 +115,8 @@ class MainWindow(QMainWindow):
         self.lblCurrentArtifact.hide()
         self.lblNextArtifact.hide()
         self.lblInfo.hide()
-        #self.lcdNumber.hide()
+        self.lcdNumber.hide()
+        self.lblCircle.hide()
 
     def getSettingsPaths(self):
         pathArt = self.XML_Read.getValue(['Paths','ArtifactOrder'])
@@ -164,16 +170,22 @@ class MainWindow(QMainWindow):
 
     def startPresentation(self):
         self.showWidgets()
+        self.timingThreads = []
         type_list = [row['type']for row in self.timeTable.lstOrder]
         self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
 
         self.lblNextArtifact.setText(self.artifact_iter.__next__())
 
         for row in self.timeTable.lstOrder:
-            Timer(int(row['start_time']),self.displayInfo,[row['type'],int(row['end_time'])-int(row['start_time'])]).start()
+            t=Timer(int(row['start_time']),self.displayInfo,[row['type'],int(row['end_time'])-int(row['start_time'])])
+            t.start()
+            self.timingThreads.append(t)
             if row==self.timeTable.lstOrder[-1]:
                 #Program finished
-                Timer(int(row['end_time']),self.hideWidgets).start()
+                
+                t=Timer(int(row['end_time']),self.hideWidgets)
+                t.start()
+                self.timingThreads.append(t)
 
     def startPresentationFromFile(self):
         self.showWidgets()
@@ -211,23 +223,25 @@ class MainWindow(QMainWindow):
                 self.lblNextArtifact.setText("")
                 blnLastArtifactReached = True
         self.lblInfo.setText(text)
-        #if hasattr(self,'lcdNumber'):
-        #    self.displayInfoLCD(text,count)
-        #else:
-        self.displayInfoCircle(text,count)
-    
-    
-    def displayInfoLCD(self,text,count):    
         
+        if self.displayWidget.currentWidget()==self.lcdNumber:
+            print('lcd display')
+            self.displayInfoLCD(text,count)
+        elif self.displayWidget.currentWidget()==self.lblCircle:
+            print('circle display')
+            self.displayInfoCircle(text,count)
+    
+    
+    def displayInfoLCD(self,text,count):
+        print(count)
         self.lcdNumber.display(count)
         for i in range(count-1):
             Timer(count-(i+1),self.lcdNumber.display,[i+1]).start()
             
     def displayInfoCircle(self,text,count):
+        _thread.start_new_thread(self.lblCircle.startAnimationThread,(count,))
         #self.lblCircle.setAngle(0)
-        n_ticks_per_second = 10
-        for i in range(count*n_ticks_per_second):
-            Timer(i/n_ticks_per_second,self.lblCircle.setAngle,[360*i/(n_ticks_per_second*count)]).start()
+        
         
 
     def makeTimeTable(self,settingOrderPath,settingTrialPath):
@@ -235,6 +249,9 @@ class MainWindow(QMainWindow):
         self.startPresentation()
 
     def stopPresentation(self):
+        if hasattr(self,'timingThreads'):
+            for t in self.timingThreads:
+                t.cancel()
         self.hideWidgets()
 
     def closeEvent(self,event):
@@ -242,7 +259,17 @@ class MainWindow(QMainWindow):
             self.settingArtefactOrder.close()
         if hasattr(self,'settingTrial'):
             self.settingTrial.close()
+        self.stopPresentation()
         self.close()
+        
+    def keyPressEvent(self,e):
+        # Check for Ctrl + d
+        if e.key() == Qt.Key_D and QApplication.keyboardModifiers() and Qt.ControlModifier :
+            if self.displayWidget.currentIndex() == 0:
+                self.displayWidget.setCurrentIndex(1)
+            elif self.displayWidget.currentIndex() == 1:
+                self.displayWidget.setCurrentIndex(0)
+
 
 class TimeTable():
     def __init__(self,settingOrderPath,settingTrialPath,xml_config_read):
@@ -271,9 +298,8 @@ class TimeTable():
         all_stimuli_list = [ele for ele in artifacts for _ in range(amount_of_stimuli)]
 
         if int(randomizeStimuli) == Qt.CheckState(Qt.Checked):
-            print("yes")
             random.shuffle(all_stimuli_list)
-        print(all_stimuli_list)
+
         time = 0
 
         for i in range(len(artifacts)):
@@ -316,7 +342,13 @@ class QLabelCircle(QWidget):
     def setAngle(self, angle):
         self.angle = angle
         self.update()
-
+        
+    def startAnimationThread(self,count):
+        n_ticks_per_second = 20
+        for i in range(count*n_ticks_per_second):
+            self.setAngle(360*i/(n_ticks_per_second*count))
+            time.sleep(1/(n_ticks_per_second))
+        pass
 
 
 if __name__ == '__main__':

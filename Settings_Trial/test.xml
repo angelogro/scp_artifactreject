@@ -4,7 +4,7 @@
         <UserDefined Checked="True">
             <sbTrialDuration>1</sbTrialDuration>
             <sbStimulusDuration>3</sbStimulusDuration>
-            <sbPause>3</sbPause>
+            <sbPause>4</sbPause>
             <cbRandomizeStimuli>2</cbRandomizeStimuli>
         </UserDefined>
         <Random Checked="False"/>
