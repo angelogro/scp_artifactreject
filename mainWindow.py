@@ -30,19 +30,17 @@ PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
 class MainWindow(QMainWindow):
     def __init__(self):
         """
-        A window showing the current project content listed on several pages.
+        Initializing function of main window.
+
 
         Parameters
         ----------
-        :param project_information_dict: dictionary with the project information
-                                         to be displayed on first pdf page
-        :type name: dictionary
+        None
 
-        :param image_dict: dictionary with image_categories and image paths
-        :type name: dictionary
         Returns
         -------
         None
+
         """
 
         super().__init__()
@@ -61,11 +59,6 @@ class MainWindow(QMainWindow):
         """
         Initialize layout and GUI
 
-        Initializes a grid layout with 3 columns, each containing a list.
-        1. Project Acronym, 2. Run Number, 3. Wafer Number
-        Below a text field can be used for searching inside the project
-        acronyms.
-        Events on the lists are connected to the main frame.
 
         Parameters
         ----------
@@ -101,6 +94,19 @@ class MainWindow(QMainWindow):
         
 
     def showWidgets(self):
+        """
+        Used for displaying all relevant labels.
+
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         self.lblCurrentArtifactText.show()
         self.lblNextArtifactText.show()
         self.lblCurrentArtifact.show()
@@ -110,6 +116,19 @@ class MainWindow(QMainWindow):
         self.lblCircle.show()
 
     def hideWidgets(self):
+        """
+        Used for hiding all relevant labels.
+
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         self.lblCurrentArtifactText.hide()
         self.lblNextArtifactText.hide()
         self.lblCurrentArtifact.hide()
@@ -119,6 +138,19 @@ class MainWindow(QMainWindow):
         self.lblCircle.hide()
 
     def getSettingsPaths(self):
+        """
+        Gets pathes of the setting xml files which are currently used for
+        generating a stimulus csv file.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
         pathArt = self.XML_Read.getValue(['Paths','ArtifactOrder'])
         if pathArt:
             self.pathArt = pathArt
@@ -130,7 +162,6 @@ class MainWindow(QMainWindow):
         self.settingArtefactOrder = SettingArtefactOrder(self.XML_Read,self.pathArt)
 
     def openStimulusFile(self):
-        print('yo')
         self.stimulusFilename,filetype = QFileDialog.getOpenFileName(None,"Stimulus file", os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','StimulusFilesDefault'])),
                                                         "CSV Files (*.csv)")
 
@@ -138,11 +169,25 @@ class MainWindow(QMainWindow):
         self.settingTrial = SettingTrial(self.XML_Read,self.pathTrial)
 
     def startPresentationClicked(self):
+        """
+        Logic of what happens if start is pressed.
+
+        Parameters
+        ----------
+        None
+
+        Returns
+        -------
+        None
+
+        """
+        # Checks if a stimulusfile exists already and hence starts a stimulus
+        # presentation based on that file.
         if hasattr(self,'stimulusFilename'):
             if self.stimulusFilename is not None:
                 self.startPresentationFromFile()
                 return
-
+            
         if hasattr(self,'settingArtefactOrder'):
             if hasattr(self.settingArtefactOrder,'currentXMLfilepath'):
                 self.pathArt = self.settingArtefactOrder.currentXMLfilepath
@@ -154,6 +199,7 @@ class MainWindow(QMainWindow):
                 self.pathTrial = self.settingTrial.currentXMLfilepath
                 if not self.settingTrial.currentXMLfilepath == 'temp_trialsettings.xml':
                     self.XML_Read.saveValue(['Paths','TrialSettings'],self.pathTrial)
+                    
         if self.pathArt is not None and self.pathTrial is not None:
             if os.path.isfile(self.pathArt) and os.path.isfile(self.pathTrial):
                 self.makeTimeTable(self.pathArt,self.pathTrial)
