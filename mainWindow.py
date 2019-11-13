@@ -8,7 +8,7 @@ from PyQt5 import QtGui,uic
 from PyQt5.QtWidgets import  QGridLayout,QLabel, QAction, QTextEdit, QFontDialog, QColorDialog, QFileDialog, QTableWidget,QLCDNumber
 from PyQt5.QtWidgets import QApplication,QLineEdit,QDialog,QScrollArea,QWidget,QStackedWidget, QMainWindow, QPlainTextEdit
 import os
-from PyQt5.QtGui import QIcon
+from PyQt5.QtGui import QIcon,QPixmap
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.Qt import QFileInfo,QProxyStyle,QStyle,QMessageBox
 from PyQt5.QtCore import Qt,QRect
@@ -45,6 +45,7 @@ class MainWindow(QMainWindow):
 
         super().__init__()
         self.loadXMLFile()
+        self.resourcesFolder = os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','Resource_Folder']))
         self.initUI()
 
     def loadXMLFile(self):
@@ -83,10 +84,8 @@ class MainWindow(QMainWindow):
         self.getSettingsPaths()
         
         self.lblCircle = QLabelCircle()
-        self.lcdNumber = QLCDNumber()
-        self.displayWidget.insertWidget(0,self.lblCircle)#,Qt.Alignment(Qt.AlignHCenter,Qt.AlignVCenter))
-        self.displayWidget.insertWidget(1,self.lcdNumber)
-        self.displayWidget.setCurrentWidget(self.lblCircle)
+        self.vlDisplay.addWidget(self.lblCircle)
+        self.lblCircle.addImageLabel()
         
         self.hideWidgets()
         self.show()
@@ -107,12 +106,6 @@ class MainWindow(QMainWindow):
         None
 
         """
-        self.lblCurrentArtifactText.show()
-        self.lblNextArtifactText.show()
-        self.lblCurrentArtifact.show()
-        self.lblNextArtifact.show()
-        self.lblInfo.show()
-        self.lcdNumber.show()
         self.lblCircle.show()
 
     def hideWidgets(self):
@@ -129,12 +122,6 @@ class MainWindow(QMainWindow):
         None
 
         """
-        self.lblCurrentArtifactText.hide()
-        self.lblNextArtifactText.hide()
-        self.lblCurrentArtifact.hide()
-        self.lblNextArtifact.hide()
-        self.lblInfo.hide()
-        self.lcdNumber.hide()
         self.lblCircle.hide()
 
     def getSettingsPaths(self):
@@ -222,8 +209,6 @@ class MainWindow(QMainWindow):
         # Takes all entries of the list which describe an artifact
         self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
 
-        self.lblNextArtifact.setText(self.artifact_iter.__next__())
-
         self.display_item_iter = iter(self.timeTable.lstOrder)
         self.runNextItem()
         
@@ -247,7 +232,7 @@ class MainWindow(QMainWindow):
             next(csv_reader)
             lst=[row[2] for row in csv_reader]
             self.artifact_iter = iter(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,lst))
-            self.lblNextArtifact.setText(self.artifact_iter.__next__())
+
 
         with open(self.stimulusFilename, mode='r',newline='') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
@@ -266,35 +251,14 @@ class MainWindow(QMainWindow):
     def displayInfo(self,text,count):
         # distinguish between circular and numerical representation
         if text!=PAUSEBETWEENTRIALSTEXT and text!=PAUSETEXT:
-            self.lblCurrentArtifact.setText(self.lblNextArtifact.text())
-            try:
-                self.lblNextArtifact.setText(self.artifact_iter.__next__())
-            except StopIteration:
-                self.lblNextArtifact.setText("")
+            self.lblCircle.setImage(QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',text,'SymbolFilename']))))
+        else:
+            self.lblCircle.setImage(QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories','ZungeGegenGaumen','SymbolFilename']))))
 
-        self.lblInfo.setText(text)
-        
-        if self.displayWidget.currentWidget()==self.lcdNumber:
-            print('lcd display')
-            self.displayInfoLCD(text,count)
-        elif self.displayWidget.currentWidget()==self.lblCircle:
-            print('circle display')
-            self.displayInfoCircle(text,count)
-        
-    
-    
-    def displayInfoLCD(self,text,count):
-        print(count)
-        self.lcdNumber.display(count)
-        for i in range(count-1):
-            t = Timer(count-(i+1),self.lcdNumber.display,[i+1])
-            t.start()
-            self.timingThreads.append(t)
-            
-    def displayInfoCircle(self,text,count):
-        _thread.start_new_thread(self.lblCircle.startAnimationThread,(count,))
-        #self.lblCircle.setAngle(0)
-        
+        #if hasattr(self,'circleAnimationThread'):
+        #    self.circleAnimationThread.exit()
+        self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text))
+        self.circleAnimationThread.start()
         
 
     def makeTimeTable(self,settingOrderPath,settingTrialPath):
@@ -380,29 +344,68 @@ class TimeTable():
                 writer.writerow(row)
 
 class QLabelCircle(QWidget):
-    def __init__(self,*args, **kwargs):
+    def __init__(self,width=10,*args, **kwargs):
         super().__init__( *args, **kwargs)
         self.setAngle(0)
+        self.arcWidth = width
+        self.arcColor = 'gray'
+        
+    
+    def addImageLabel(self):
+        self.lblImage = QLabelOpaque()
+        self.lblImage.setScaledContents(True)
+        self.lblImage.setParent(self)
+        self.lblImage.setGeometry( QRect(75, 75, self.parentWidget().width()-160, self.parentWidget().height()-160))
+
         
     def paintEvent(self,e):
         painter = QtGui.QPainter(self)
         pen = QtGui.QPen()
-        pen.setColor(QtGui.QColor('blue'))
-        pen.setWidth(10)
+        pen.setColor(QtGui.QColor(self.arcColor))
+        pen.setWidth(self.arcWidth)
         painter.setPen(pen)
-        painter.drawArc(10,10,80,80,0,16*self.angle);
+        painter.drawArc(self.arcWidth,self.arcWidth,self.width()-2*self.arcWidth,self.width()-2*self.arcWidth,0,16*self.angle);
         
     def setAngle(self, angle):
         self.angle = angle
         self.update()
         
-    def startAnimationThread(self,count):
+    def startAnimationThread(self,count,text):
+        if text == PAUSETEXT or text == PAUSEBETWEENTRIALSTEXT:
+            self.lblImage.setOpacity(0.3)
+            self.arcColor = 'gray'
+        else:
+            self.lblImage.setOpacity(1)
+            self.arcColor = 'green'
+        startTime = time.time()
         n_ticks_per_second = 20
+        wait_time = 1/(n_ticks_per_second)
         for i in range(count*n_ticks_per_second):
             self.setAngle(360*i/(n_ticks_per_second*count))
-            time.sleep(1/(n_ticks_per_second))
+            
+            if time.time()-startTime < i/n_ticks_per_second:
+                time.sleep(wait_time)
         pass
+    
+    def setImage(self,image):
+        self.lblImage.setPixmap(image,)
+        self.lblImage.update()
+        self.update()
 
+class QLabelOpaque(QLabel):
+    def __init__(self,*args, **kwargs):
+        super().__init__( *args, **kwargs)
+        self.opacity=1
+        
+    def paintEvent(self,e):
+        painter = QtGui.QPainter(self)
+        painter.setOpacity(self.opacity)
+        if self.pixmap() is not None:
+            pixmap = self.pixmap().scaled(self.width(),self.height(),Qt.KeepAspectRatio)
+            painter.drawPixmap((self.width()-pixmap.width())/2, (self.height()-pixmap.height())/2, pixmap)
+    
+    def setOpacity(self,opacity):
+        self.opacity = opacity
 
 if __name__ == '__main__':
     app = QApplication(sys.argv)

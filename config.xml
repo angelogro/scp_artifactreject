@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
-		<TrialSettings>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_Trial/test.xml</TrialSettings>
+		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
+		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/test.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>
@@ -12,38 +12,47 @@
 		<Blinzeln>
 			<ID>0</ID>
 			<Text>Blinzeln</Text>
+			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
 		</Blinzeln>
 		<FussBewegen>
 			<ID>1</ID>
 			<Text>F&#252;&#223;e gegen Boden dr&#252;cken</Text>
+			<SymbolFilename>sym_foot.jpg</SymbolFilename>
 		</FussBewegen>
 		<ZungeGegenGaumen>
 			<ID>2</ID>
 			<Text>Zunge gegen Gaumen dr&#252;cken</Text>
+			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
 		</ZungeGegenGaumen>
 		<ForciertesAtmen>
 			<ID>3</ID>
 			<Text>Forciertes Atmen</Text>
+			<SymbolFilename></SymbolFilename>
 		</ForciertesAtmen>
 		<ZaehneBeissen>
 			<ID>4</ID>
 			<Text>Z&#228;hne aufeinander bei&#223;en</Text>
+			<SymbolFilename></SymbolFilename>
 		</ZaehneBeissen>
 		<AugenVerdrehen>
 			<ID>5</ID>
 			<Text>Augen verdrehen</Text>
+			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
 		</AugenVerdrehen>
 		<LuftAnhalten>
 			<ID>6</ID>
 			<Text>Luft anhalten/pressen</Text>
+			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
 		</LuftAnhalten>
 		<NaseRuempfen>
 			<ID>7</ID>
 			<Text>Nase r&#252;mpfen</Text>
+			<SymbolFilename>sym_nose.png</SymbolFilename>
 		</NaseRuempfen>
 		<Schlucken>
 			<ID>8</ID>
 			<Text>Schlucken</Text>
+			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
 		</Schlucken>
 	</ArtefactCategories>
 </Data>
