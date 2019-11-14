@@ -63,6 +63,7 @@ class SettingArtefactOrder(QDialog):
         pause_minute = xmlReader.getValue(['PauseInBetweenTrials','Minute'])
         pause_second = xmlReader.getValue(['PauseInBetweenTrials','Second'])
         self.timeEditInBetweenTrials.setTime(QTime(0,int(pause_minute),int(pause_second),0))
+        self.sbAmountTrials.setValue(int(xmlReader.getValue(['AmountOfTrials'])))
         
     def saveArtifactOrder(self,event,fileName=None):
         diag = QFileDialog(self,"Open Bookmark File", QtCore.QDir.currentPath())
@@ -90,6 +91,7 @@ class SettingArtefactOrder(QDialog):
         stream.writeTextElement('Minute',str(self.timeEditInBetweenTrials.time().minute()))
         stream.writeTextElement('Second',str(self.timeEditInBetweenTrials.time().second()))
         stream.writeEndElement()
+        stream.writeTextElement('AmountOfTrials',str(self.sbAmountTrials.value()))
         stream.writeEndElement()
         stream.writeEndDocument()
         
@@ -208,9 +210,10 @@ class SettingTrial(QDialog):
                 self.currentXMLfilepath = fileName[0]
 
         self.sbTrialDuration.setValue(int(xmlReader.getValue(['TrialSettings','UserDefined','sbTrialDuration'])))
-        self.sbStimulusDuration.setValue(int(xmlReader.getValue(['TrialSettings','UserDefined','sbStimulusDuration'])))
-        self.sbPause.setValue(int(xmlReader.getValue(['TrialSettings','UserDefined','sbPause'])))
+        self.sbStimulusDuration.setValue(float(xmlReader.getValue(['TrialSettings','UserDefined','sbStimulusDuration'])))
+        self.sbPause.setValue(float(xmlReader.getValue(['TrialSettings','UserDefined','sbPause'])))
         self.cbRandomizeStimuli.setCheckState(int(xmlReader.getValue(['TrialSettings','UserDefined','cbRandomizeStimuli'])))
+        self.cbP300Simulation.setCheckState(int(xmlReader.getValue(['TrialSettings','UserDefined','cbP300Simulation'])))
 
         if xmlReader.getAttrib(['TrialSettings','UserDefined'],'Checked') == 'True':
             self.rbUserDefined.setChecked(True)
@@ -239,7 +242,7 @@ class SettingTrial(QDialog):
         stream.writeTextElement(self.sbStimulusDuration.objectName(),str(self.sbStimulusDuration.value()))
         stream.writeTextElement(self.sbPause.objectName(),str(self.sbPause.value()))
         stream.writeTextElement(self.cbRandomizeStimuli.objectName(),str(self.cbRandomizeStimuli.checkState()))
-        print(self.cbRandomizeStimuli.checkState())
+        stream.writeTextElement(self.cbP300Simulation.objectName(),str(self.cbP300Simulation.checkState()))
         stream.writeEndElement()
         stream.writeStartElement('Random')
         stream.writeAttribute('Checked',str(self.rbRandom.isChecked()))

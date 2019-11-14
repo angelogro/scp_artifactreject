@@ -209,15 +209,21 @@ class MainWindow(QMainWindow):
         # Takes all entries of the list which describe an artifact
         self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
 
+        self.image_dic = self.getCurrentArtifactTypes(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
+
         self.display_item_iter = iter(self.timeTable.lstOrder)
         self.runNextItem()
-        
+    
+    def getCurrentArtifactTypes(self,lst):
+        artifact_types = list(set(lst))
+        image_dict = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in artifact_types}
+        return image_dict
 
     def runNextItem(self):
         try:
             current_item = self.display_item_iter.__next__()
-            _thread.start_new_thread(self.displayInfo,(current_item['type'],int(current_item['end_time'])-int(current_item['start_time'])))
-            t =Timer(int(current_item['end_time'])-int(current_item['start_time']),self.runNextItem)
+            _thread.start_new_thread(self.displayInfo,(current_item['type'],float(current_item['end_time'])-float(current_item['start_time'])))
+            t =Timer(float(current_item['end_time'])-float(current_item['start_time']),self.runNextItem)
             t.start()
             self.timingThreads.append(t)
         except StopIteration:
@@ -250,14 +256,17 @@ class MainWindow(QMainWindow):
 
     def displayInfo(self,text,count):
         # distinguish between circular and numerical representation
-        if text!=PAUSEBETWEENTRIALSTEXT and text!=PAUSETEXT:
-            self.lblCircle.setImage(QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',text,'SymbolFilename']))))
+        
+        if text!=PAUSETEXT:
+            pass
         else:
-            self.lblCircle.setImage(QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories','ZungeGegenGaumen','SymbolFilename']))))
-
-        #if hasattr(self,'circleAnimationThread'):
-        #    self.circleAnimationThread.exit()
-        self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text))
+            self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
+            
+        if int(self.timeTable.otherSettings['P300']) == Qt.CheckState(Qt.Checked):
+            experimentType='P300'
+        else:
+            experimentType='standard'
+        self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,experimentType))
         self.circleAnimationThread.start()
         
 
@@ -300,16 +309,17 @@ class TimeTable():
 
     def generateOrder(self):
         self.lstOrder = []
-        self.artifactOrder=[]
         trialDuration = self.XML_settingTrial.getValue(['TrialSettings','UserDefined','sbTrialDuration'])
         stimulusDuration = self.XML_settingTrial.getValue(['TrialSettings','UserDefined','sbStimulusDuration'])
         pauseDuration = self.XML_settingTrial.getValue(['TrialSettings','UserDefined','sbPause'])
         randomizeStimuli = self.XML_settingTrial.getValue(['TrialSettings','UserDefined','cbRandomizeStimuli'])
+        self.otherSettings = {'P300':self.XML_settingTrial.getValue(['TrialSettings','UserDefined','cbP300Simulation'])}
+        amountOfTrials = int(self.XML_artifactOrder.getValue(['AmountOfTrials']))
 
 
         pauseBetweenTrials = 60*int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Minute']))+int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Second']))
 
-        amount_of_stimuli = ceil(int(trialDuration)*60/(int(stimulusDuration)+int(pauseDuration)))
+        amount_of_stimuli = ceil(int(trialDuration)*60/(float(stimulusDuration)+float(pauseDuration)))
 
         artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
         all_stimuli_list = [ele for ele in artifacts for _ in range(amount_of_stimuli)]
@@ -319,18 +329,20 @@ class TimeTable():
 
         time = 0
 
-        for i in range(len(artifacts)):
-            self.artifactOrder.append(artifacts[i])
+        for i in range(amountOfTrials):
             if time != 0:
                 self.lstOrder.append({'start_time':str(time),'end_time':str(time+pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT })
                 time+=pauseBetweenTrials
             for num in range(amount_of_stimuli):
 
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+int(pauseDuration)),'type':PAUSETEXT})
-                time+=int(pauseDuration)
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+int(stimulusDuration)),
+                self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(pauseDuration)),'type':PAUSETEXT})
+                time+=float(pauseDuration)
+                if len(all_stimuli_list) <= num+i*amount_of_stimuli:
+                    all_stimuli_list = all_stimuli_list*2
+                self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
                                           'type':all_stimuli_list[num+i*amount_of_stimuli]})
-                time+=int(stimulusDuration)
+                
+                time+=float(stimulusDuration)
 
 
 
@@ -370,17 +382,32 @@ class QLabelCircle(QWidget):
         self.angle = angle
         self.update()
         
-    def startAnimationThread(self,count,text):
-        if text == PAUSETEXT or text == PAUSEBETWEENTRIALSTEXT:
-            self.lblImage.setOpacity(0.3)
-            self.arcColor = 'gray'
+    def startAnimationThread(self,count,text,experimentType='standard'):
+        if experimentType == 'P300':
+            self.lblImage.setOpacity(0)
+            if text == PAUSETEXT:
+                pass
+            elif text == PAUSEBETWEENTRIALSTEXT:
+                self.arcColor = 'gray'
+                self.runCircleAnimation(count)
+            else:
+                self.setAngle(0)
+                self.lblImage.setOpacity(1)
+                self.update()
         else:
-            self.lblImage.setOpacity(1)
-            self.arcColor = 'green'
+            if text == PAUSETEXT or text == PAUSEBETWEENTRIALSTEXT:
+                self.lblImage.setOpacity(0.3)
+                self.arcColor = 'gray'              
+            else:
+                self.lblImage.setOpacity(1)
+                self.arcColor = 'green'
+            self.runCircleAnimation(count)           
+
+    def runCircleAnimation(self,count):
         startTime = time.time()
         n_ticks_per_second = 20
         wait_time = 1/(n_ticks_per_second)
-        for i in range(count*n_ticks_per_second):
+        for i in range(int(count*n_ticks_per_second)):
             self.setAngle(360*i/(n_ticks_per_second*count))
             
             if time.time()-startTime < i/n_ticks_per_second:

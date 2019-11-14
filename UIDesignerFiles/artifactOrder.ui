@@ -98,6 +98,16 @@
        </property>
       </widget>
      </item>
+     <item row="1" column="0">
+      <widget class="QLabel" name="lblAmountTrials">
+       <property name="text">
+        <string>Amount of trials</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QSpinBox" name="sbAmountTrials"/>
+     </item>
     </layout>
    </item>
    <item>

@@ -16,5 +16,5 @@
         <Minute>0</Minute>
         <Second>15</Second>
     </PauseInBetweenTrials>
-    <AmountOfTrials>4</AmountOfTrials>
+    <AmountOfTrials>10</AmountOfTrials>
 </Data>

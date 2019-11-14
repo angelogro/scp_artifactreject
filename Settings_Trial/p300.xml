@@ -3,9 +3,10 @@
     <TrialSettings>
         <UserDefined Checked="True">
             <sbTrialDuration>1</sbTrialDuration>
-            <sbStimulusDuration>3</sbStimulusDuration>
-            <sbPause>3</sbPause>
-            <cbRandomizeStimuli>0</cbRandomizeStimuli>
+            <sbStimulusDuration>0.19999999999999848</sbStimulusDuration>
+            <sbPause>0.3999999999999976</sbPause>
+            <cbRandomizeStimuli>2</cbRandomizeStimuli>
+            <cbP300Simulation>2</cbP300Simulation>
         </UserDefined>
         <Random Checked="False"/>
     </TrialSettings>

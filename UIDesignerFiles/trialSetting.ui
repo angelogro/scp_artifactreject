@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>400</width>
-    <height>304</height>
+    <height>357</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -58,9 +58,6 @@
           </property>
          </widget>
         </item>
-        <item row="2" column="1">
-         <widget class="QSpinBox" name="sbStimulusDuration"/>
-        </item>
         <item row="3" column="0">
          <widget class="QLabel" name="lblPause">
           <property name="text">
@@ -68,13 +65,37 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="1">
-         <widget class="QSpinBox" name="sbPause"/>
-        </item>
         <item row="4" column="0">
          <widget class="QCheckBox" name="cbRandomizeStimuli">
           <property name="text">
            <string>Randomize stimuli order</string>
+          </property>
+         </widget>
+        </item>
+        <item row="5" column="0">
+         <widget class="QCheckBox" name="cbP300Simulation">
+          <property name="text">
+           <string>P300 Simulation</string>
+          </property>
+         </widget>
+        </item>
+        <item row="2" column="1">
+         <widget class="QDoubleSpinBox" name="sbStimulusDuration">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="1">
+         <widget class="QDoubleSpinBox" name="sbPause">
+          <property name="decimals">
+           <number>1</number>
+          </property>
+          <property name="singleStep">
+           <double>0.100000000000000</double>
           </property>
          </widget>
         </item>

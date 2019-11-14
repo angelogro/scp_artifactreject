@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
-		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/test.xml</TrialSettings>
+		<ArtifactOrder>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_ArtifactOrder/trials12.xml</ArtifactOrder>
+		<TrialSettings>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_Trial/p300.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>
@@ -12,7 +12,7 @@
 		<Blinzeln>
 			<ID>0</ID>
 			<Text>Blinzeln</Text>
-			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
+			<SymbolFilename>sym_blink.png</SymbolFilename>
 		</Blinzeln>
 		<FussBewegen>
 			<ID>1</ID>
@@ -27,22 +27,22 @@
 		<ForciertesAtmen>
 			<ID>3</ID>
 			<Text>Forciertes Atmen</Text>
-			<SymbolFilename></SymbolFilename>
+			<SymbolFilename>sym_breathe.svg</SymbolFilename>
 		</ForciertesAtmen>
 		<ZaehneBeissen>
 			<ID>4</ID>
 			<Text>Z&#228;hne aufeinander bei&#223;en</Text>
-			<SymbolFilename></SymbolFilename>
+			<SymbolFilename>sym_teeth.jpg</SymbolFilename>
 		</ZaehneBeissen>
 		<AugenVerdrehen>
 			<ID>5</ID>
 			<Text>Augen verdrehen</Text>
-			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
+			<SymbolFilename>sym_eye.png</SymbolFilename>
 		</AugenVerdrehen>
 		<LuftAnhalten>
 			<ID>6</ID>
 			<Text>Luft anhalten/pressen</Text>
-			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
+			<SymbolFilename>sym_breathe.svg</SymbolFilename>
 		</LuftAnhalten>
 		<NaseRuempfen>
 			<ID>7</ID>
@@ -52,7 +52,12 @@
 		<Schlucken>
 			<ID>8</ID>
 			<Text>Schlucken</Text>
-			<SymbolFilename>sym_tongue.jpg</SymbolFilename>
+			<SymbolFilename>sym_swallow.png</SymbolFilename>
 		</Schlucken>
+		<Entspannen>
+			<ID>8</ID>
+			<Text>Entspannen</Text>
+			<SymbolFilename>sym_relax.png</SymbolFilename>
+		</Entspannen>
 	</ArtefactCategories>
 </Data>

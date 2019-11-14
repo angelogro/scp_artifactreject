@@ -6,6 +6,7 @@
             <sbStimulusDuration>3</sbStimulusDuration>
             <sbPause>4</sbPause>
             <cbRandomizeStimuli>2</cbRandomizeStimuli>
+            <cbP300Simulation>2</cbP300Simulation>
         </UserDefined>
         <Random Checked="False"/>
     </TrialSettings>
