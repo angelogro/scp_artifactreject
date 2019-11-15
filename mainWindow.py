@@ -8,10 +8,10 @@ from PyQt5 import QtGui,uic
 from PyQt5.QtWidgets import  QGridLayout,QLabel, QAction, QTextEdit, QFontDialog, QColorDialog, QFileDialog, QTableWidget,QLCDNumber
 from PyQt5.QtWidgets import QApplication,QLineEdit,QDialog,QScrollArea,QWidget,QStackedWidget, QMainWindow, QPlainTextEdit
 import os
-from PyQt5.QtGui import QIcon,QPixmap
+from PyQt5.QtGui import QIcon,QPixmap,QStaticText
 from PyQt5.QtPrintSupport import QPrintDialog, QPrinter, QPrintPreviewDialog
 from PyQt5.Qt import QFileInfo,QProxyStyle,QStyle,QMessageBox
-from PyQt5.QtCore import Qt,QRect
+from PyQt5.QtCore import Qt,QRect,QPoint
 from PyQt5.QtGui import QPainter, QColor, QFont, QPdfWriter,QFontMetrics,QBrush
 from xml_read import XML_Read
 from PyQt5 import QtCore
@@ -22,6 +22,8 @@ from math import ceil
 import sched, time
 from threading import Timer,Thread
 import _thread
+from itertools import cycle
+from parallelSend import ParallelSender
 
 PAUSETEXT = 'pause'
 PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
@@ -47,6 +49,7 @@ class MainWindow(QMainWindow):
         self.loadXMLFile()
         self.resourcesFolder = os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','Resource_Folder']))
         self.initUI()
+        self.pSender = ParallelSender()
 
     def loadXMLFile(self):
         if os.path.isfile('config.xml'):
@@ -210,13 +213,13 @@ class MainWindow(QMainWindow):
         self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
 
         self.image_dic = self.getCurrentArtifactTypes(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
-
+        self.artifact_types = cycle(self.artifact_types)
         self.display_item_iter = iter(self.timeTable.lstOrder)
         self.runNextItem()
     
     def getCurrentArtifactTypes(self,lst):
-        artifact_types = list(set(lst))
-        image_dict = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in artifact_types}
+        self.artifact_types = list(set(lst))
+        image_dict = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in self.artifact_types}
         return image_dict
 
     def runNextItem(self):
@@ -257,15 +260,20 @@ class MainWindow(QMainWindow):
     def displayInfo(self,text,count):
         # distinguish between circular and numerical representation
         
-        if text!=PAUSETEXT:
-            pass
-        else:
+        if text==PAUSETEXT:
             self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
+        elif text==PAUSEBETWEENTRIALSTEXT:
+            if int(self.timeTable.otherSettings['P300']) == Qt.CheckState(Qt.Checked):
+                nextart=self.artifact_types.__next__()
+                print(nextart)
+                self.lblCircle.setImage(self.image_dic[nextart])
+            
             
         if int(self.timeTable.otherSettings['P300']) == Qt.CheckState(Qt.Checked):
             experimentType='P300'
         else:
             experimentType='standard'
+            
         self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,experimentType))
         self.circleAnimationThread.start()
         
@@ -316,7 +324,6 @@ class TimeTable():
         self.otherSettings = {'P300':self.XML_settingTrial.getValue(['TrialSettings','UserDefined','cbP300Simulation'])}
         amountOfTrials = int(self.XML_artifactOrder.getValue(['AmountOfTrials']))
 
-
         pauseBetweenTrials = 60*int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Minute']))+int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Second']))
 
         amount_of_stimuli = ceil(int(trialDuration)*60/(float(stimulusDuration)+float(pauseDuration)))
@@ -326,21 +333,22 @@ class TimeTable():
 
         if int(randomizeStimuli) == Qt.CheckState(Qt.Checked):
             random.shuffle(all_stimuli_list)
+        all_stimuli_list = cycle(all_stimuli_list)
 
         time = 0
 
         for i in range(amountOfTrials):
-            if time != 0:
+            if (time != 0) or (int(self.otherSettings['P300']) == Qt.CheckState(Qt.Checked)):
+                print('enteres')
                 self.lstOrder.append({'start_time':str(time),'end_time':str(time+pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT })
                 time+=pauseBetweenTrials
             for num in range(amount_of_stimuli):
 
                 self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(pauseDuration)),'type':PAUSETEXT})
                 time+=float(pauseDuration)
-                if len(all_stimuli_list) <= num+i*amount_of_stimuli:
-                    all_stimuli_list = all_stimuli_list*2
+
                 self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
-                                          'type':all_stimuli_list[num+i*amount_of_stimuli]})
+                                          'type':all_stimuli_list.__next__()})
                 
                 time+=float(stimulusDuration)
 
@@ -368,7 +376,6 @@ class QLabelCircle(QWidget):
         self.lblImage.setScaledContents(True)
         self.lblImage.setParent(self)
         self.lblImage.setGeometry( QRect(75, 75, self.parentWidget().width()-160, self.parentWidget().height()-160))
-
         
     def paintEvent(self,e):
         painter = QtGui.QPainter(self)
@@ -376,20 +383,30 @@ class QLabelCircle(QWidget):
         pen.setColor(QtGui.QColor(self.arcColor))
         pen.setWidth(self.arcWidth)
         painter.setPen(pen)
-        painter.drawArc(self.arcWidth,self.arcWidth,self.width()-2*self.arcWidth,self.width()-2*self.arcWidth,0,16*self.angle);
+        painter.drawArc(self.arcWidth,self.arcWidth,self.width()-2*self.arcWidth,self.width()-2*self.arcWidth,0,16*self.angle)
+        if self.addText:
+            text = QStaticText('Target Symbol:')
+            pen.setColor(QtGui.QColor('black'))
+            painter.setPen(pen)
+            painter.setFont(QFont("times",22))
+            painter.drawStaticText(QPoint(90,40),text)
         
     def setAngle(self, angle):
         self.angle = angle
         self.update()
         
     def startAnimationThread(self,count,text,experimentType='standard'):
+        self.addText=False
         if experimentType == 'P300':
             self.lblImage.setOpacity(0)
             if text == PAUSETEXT:
-                pass
+                self.setAngle(0)
             elif text == PAUSEBETWEENTRIALSTEXT:
-                self.arcColor = 'gray'
+                self.arcColor = 'red'
+                self.lblImage.setOpacity(1)
+                self.addText=True
                 self.runCircleAnimation(count)
+                
             else:
                 self.setAngle(0)
                 self.lblImage.setOpacity(1)

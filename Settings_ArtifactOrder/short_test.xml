@@ -3,9 +3,11 @@
     <Order>
         <Blinzeln></Blinzeln>
         <FussBewegen></FussBewegen>
+        <ZungeGegenGaumen></ZungeGegenGaumen>
     </Order>
     <PauseInBetweenTrials>
-        <Minute>1</Minute>
-        <Second>0</Second>
+        <Minute>0</Minute>
+        <Second>15</Second>
     </PauseInBetweenTrials>
+    <AmountOfTrials>4</AmountOfTrials>
 </Data>

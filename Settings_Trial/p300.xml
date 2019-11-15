@@ -3,8 +3,8 @@
     <TrialSettings>
         <UserDefined Checked="True">
             <sbTrialDuration>1</sbTrialDuration>
-            <sbStimulusDuration>0.19999999999999848</sbStimulusDuration>
-            <sbPause>0.3999999999999976</sbPause>
+            <sbStimulusDuration>0.5000000000000001</sbStimulusDuration>
+            <sbPause>0.49999999999999933</sbPause>
             <cbRandomizeStimuli>2</cbRandomizeStimuli>
             <cbP300Simulation>2</cbP300Simulation>
         </UserDefined>
