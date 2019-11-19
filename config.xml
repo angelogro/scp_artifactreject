@@ -2,7 +2,7 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
+		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/all_cat_10trials.xml</ArtifactOrder>
 		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/p300.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
@@ -10,7 +10,7 @@
 	</Paths>
 	<ArtefactCategories>
 		<Blinzeln>
-			<ID>0</ID>
+			<ID>9</ID>
 			<Text>Blinzeln</Text>
 			<SymbolFilename>sym_blink.png</SymbolFilename>
 		</Blinzeln>
@@ -55,7 +55,7 @@
 			<SymbolFilename>sym_swallow.png</SymbolFilename>
 		</Schlucken>
 		<Entspannen>
-			<ID>8</ID>
+			<ID>10</ID>
 			<Text>Entspannen</Text>
 			<SymbolFilename>sym_relax.png</SymbolFilename>
 		</Entspannen>

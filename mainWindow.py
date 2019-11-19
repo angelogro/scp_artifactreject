@@ -27,6 +27,8 @@ from parallelSend import ParallelSender
 
 PAUSETEXT = 'pause'
 PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
+PAUSEID = 100
+STARTID = 200
 
 
 class MainWindow(QMainWindow):
@@ -213,13 +215,15 @@ class MainWindow(QMainWindow):
         self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
 
         self.image_dic = self.getCurrentArtifactTypes(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
-        self.artifact_types = cycle(self.artifact_types)
+        
+        self.artifact_types = cycle(self.timeTable.artifacts)
         self.display_item_iter = iter(self.timeTable.lstOrder)
+        self.pSender.send_parallel(None,None,STARTID)
         self.runNextItem()
     
     def getCurrentArtifactTypes(self,lst):
-        self.artifact_types = list(set(lst))
-        image_dict = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in self.artifact_types}
+        artifact_types = list(set(lst))
+        image_dict = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in artifact_types}
         return image_dict
 
     def runNextItem(self):
@@ -261,13 +265,22 @@ class MainWindow(QMainWindow):
         # distinguish between circular and numerical representation
         
         if text==PAUSETEXT:
+            self.pSender.send_parallel(None,None,PAUSEID)
             self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
         elif text==PAUSEBETWEENTRIALSTEXT:
+            self.pSender.send_parallel(None,None,PAUSEID)
             if int(self.timeTable.otherSettings['P300']) == Qt.CheckState(Qt.Checked):
-                nextart=self.artifact_types.__next__()
-                print(nextart)
-                self.lblCircle.setImage(self.image_dic[nextart])
-            
+                ### The one which is the target stimulus
+                self.currentTarget=self.artifact_types.__next__()
+                self.lblCircle.setImage(self.image_dic[self.currentTarget])
+        else:
+            if int(self.timeTable.otherSettings['P300']) == Qt.CheckState(Qt.Checked):
+                if text == self.currentTarget:
+                    self.pSender.send_parallel(None,None,1)
+                else:
+                    self.pSender.send_parallel(None,None,2)
+            else:
+                self.pSender.send_parallel(None,None,self.XML_Read.getValue(['ArtefactCategories',text,'ID']))
             
         if int(self.timeTable.otherSettings['P300']) == Qt.CheckState(Qt.Checked):
             experimentType='P300'
@@ -328,28 +341,41 @@ class TimeTable():
 
         amount_of_stimuli = ceil(int(trialDuration)*60/(float(stimulusDuration)+float(pauseDuration)))
 
-        artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
-        all_stimuli_list = [ele for ele in artifacts for _ in range(amount_of_stimuli)]
+        self.artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
+        all_stimuli_list = [ele for ele in self.artifacts for _ in range(amount_of_stimuli)]
 
         if int(randomizeStimuli) == Qt.CheckState(Qt.Checked):
             random.shuffle(all_stimuli_list)
         all_stimuli_list = cycle(all_stimuli_list)
 
         time = 0
-
+        
+        prob = 0.3
+        
         for i in range(amountOfTrials):
             if (time != 0) or (int(self.otherSettings['P300']) == Qt.CheckState(Qt.Checked)):
-                print('enteres')
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT })
+                self.lstOrder.append({'start_time':str(time),'end_time':str(time+pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
                 time+=pauseBetweenTrials
+                
             for num in range(amount_of_stimuli):
-
                 self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(pauseDuration)),'type':PAUSETEXT})
                 time+=float(pauseDuration)
-
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
-                                          'type':all_stimuli_list.__next__()})
                 
+                if int(self.otherSettings['P300'])==Qt.CheckState(Qt.Checked):
+                    if random.random()<prob:
+                        self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
+                                                  'type':self.artifacts[i]})
+                    else:
+                        while True:
+                            artifact_name = all_stimuli_list.__next__()
+                            if artifact_name != self.artifacts[i]:
+                                break
+                        self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
+                                                  'type':artifact_name})
+                else:
+                    artifact_name = all_stimuli_list.__next__()
+                    self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
+                                                  'type':artifact_name})
                 time+=float(stimulusDuration)
 
 
@@ -418,7 +444,6 @@ class QLabelCircle(QWidget):
             else:
                 self.lblImage.setOpacity(1)
                 self.arcColor = 'green'
-            self.runCircleAnimation(count)           
 
     def runCircleAnimation(self,count):
         startTime = time.time()

@@ -4,7 +4,7 @@
         <UserDefined Checked="True">
             <sbTrialDuration>1</sbTrialDuration>
             <sbStimulusDuration>0.5</sbStimulusDuration>
-            <sbPause>0.5</sbPause>
+            <sbPause>2.0000000000000004</sbPause>
             <cbRandomizeStimuli>2</cbRandomizeStimuli>
             <cbP300Simulation>0</cbP300Simulation>
         </UserDefined>

@@ -27,6 +27,13 @@ class ParallelSender():
     def send_parallel(self,pport, port_num, data, reset=True):
     
         """Sends the data to the parallel port."""
+        
+        ### HAS TO BE ERASED WHEN PARALLEL PORT WORKS FINE
+        print(data)
+        return
+        
+        
+        
         if reset == True:
             # A new trigger arrived before we could reset the old one
             if hasattr(self,'triggerResetTimer'):
