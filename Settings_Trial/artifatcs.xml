@@ -3,8 +3,8 @@
     <TrialSettings>
         <GeneralSettings>
             <sbTrialDuration>1</sbTrialDuration>
-            <sbStimulusDuration>0.2</sbStimulusDuration>
-            <sbPause>0.3</sbPause>
+            <sbStimulusDuration>2.000000000000001</sbStimulusDuration>
+            <sbPause>2.000000000000001</sbPause>
             <cbRandomizeStimuli>2</cbRandomizeStimuli>
         </GeneralSettings>
         <Artifacts Checked="True"/>

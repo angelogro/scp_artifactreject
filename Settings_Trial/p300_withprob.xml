@@ -3,13 +3,13 @@
     <TrialSettings>
         <GeneralSettings>
             <sbTrialDuration>1</sbTrialDuration>
-            <sbStimulusDuration>0.6</sbStimulusDuration>
-            <sbPause>0.7</sbPause>
+            <sbStimulusDuration>1.0</sbStimulusDuration>
+            <sbPause>1.0</sbPause>
             <cbRandomizeStimuli>2</cbRandomizeStimuli>
         </GeneralSettings>
         <Artifacts Checked="False"/>
         <ERP Checked="True">
-            <cbProbability>0.3</cbProbability>
+            <cbProbability>0.4</cbProbability>
         </ERP>
     </TrialSettings>
 </Data>

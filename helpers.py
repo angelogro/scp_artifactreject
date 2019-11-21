@@ -63,10 +63,8 @@ class TimeTable():
         self.XML_Read = xml_config_read
         self.XML_artifactOrder = XML_Read(settingOrderPath)
         self.XML_settingTrial = XML_Read(settingTrialPath)
-        self.loadSettingInformation()
-        filename,filetype = QFileDialog.getSaveFileName(None,"Stimulus file", os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','StimulusFilesDefault'])),
-                                                        "CSV Files (*.csv)")
-        self.writeToCSVFile(filename)
+        
+        
 
     def loadSettingInformation(self):
         self.lstOrder = []
@@ -74,7 +72,7 @@ class TimeTable():
         self.stimulusDuration = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','sbStimulusDuration'])
         self.pauseDuration = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','sbPause'])
         randomizeStimuli = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','cbRandomizeStimuli'])
-        amountOfTrials = int(self.XML_artifactOrder.getValue(['AmountOfTrials']))
+        self.amountOfTrials = int(self.XML_artifactOrder.getValue(['AmountOfTrials']))
         self.pauseBetweenTrials = 60*int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Minute']))+int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Second']))
         self.amount_of_stimuli = ceil(int(trialDuration)*60/(float(self.stimulusDuration)+float(self.pauseDuration)))
         self.artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
@@ -84,67 +82,70 @@ class TimeTable():
             random.shuffle(all_stimuli_list)
         self.all_stimuli_list = all_stimuli_list
 
-        self.ERP = bool(self.XML_settingTrial.getAttrib(['TrialSettings','ERP'],'Checked'))
+        self.ERP = self.XML_settingTrial.getAttrib(['TrialSettings','ERP'],'Checked')
+        
+        filename,filetype = QFileDialog.getSaveFileName(None,"Stimulus file", os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','StimulusFilesDefault'])),
+                                                        "CSV Files (*.csv)")
 
-        if  self.ERP == True:
-            self.generateERPStimuliSequence()
+        if  self.ERP == 'True':
+            stimuliList = self.generateERPStimuliSequence()
+            self.writeToCSVFile(filename,stimuliList,'ERP')
+            return 'ERP',stimuliList, self.artifacts
         else:
-            self.generateArtifactStimuliSequence()
+            stimuliList = self.generateArtifactStimuliSequence()
+            self.writeToCSVFile(filename,stimuliList,'Artifact')
+            return 'Artifact',stimuliList, self.artifacts
+            
+        
     
     def generateERPStimuliSequence(self):
         prob = float(self.XML_settingTrial.getValue(['TrialSettings','ERP','cbProbability']))
         complSequence = iter(getCompleteSequence(prob,len(self.all_stimuli_list)))
+        lstOrder = []
 
         time = 0      
         for i in range(len(self.artifacts)):
-            if (time != 0):
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+self.pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
-                time+=self.pauseBetweenTrials
+            lstOrder.append({'start_time':str(time),'end_time':str(time+self.pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
+            time+=self.pauseBetweenTrials
                 
             for num in range(self.amount_of_stimuli):
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.pauseDuration)),'type':PAUSETEXT})
+                lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.pauseDuration)),'type':PAUSETEXT})
                 time+=float(self.pauseDuration)
 
                 if complSequence.__next__() == 1:
-                    self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.stimulusDuration)),
+                    lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.stimulusDuration)),
                                                 'type':self.artifacts[i]})
                 else:
                     while True:
                         nontargetindex = random.randint(0,len(self.artifacts)-1)
                         if nontargetindex!=i:
                             break
-                    self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.stimulusDuration)),
+                    lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.stimulusDuration)),
                                                 'type':self.artifacts[nontargetindex]})
                 time+=float(self.stimulusDuration)
+        return lstOrder
 
     def generateArtifactStimuliSequence(self):
+        lstOrder = []
         time = 0
+        self.all_stimuli_list = iter(self.all_stimuli_list)
         
-        for i in range(amountOfTrials):
-            if (time != 0) or (int(self.otherSettings['P300']) == Qt.CheckState(Qt.Checked)):
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
-                time+=pauseBetweenTrials
+        for i in range(self.amountOfTrials):
+            if (time != 0):
+                lstOrder.append({'start_time':str(time),'end_time':str(time+self.pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
+                time+=self.pauseBetweenTrials
                 
-            for num in range(amount_of_stimuli):
-                self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(pauseDuration)),'type':PAUSETEXT})
-                time+=float(pauseDuration)
+            for num in range(self.amount_of_stimuli):
+                lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.pauseDuration)),'type':PAUSETEXT})
+                time+=float(self.pauseDuration)
                 
-                if int(self.otherSettings['P300'])==Qt.CheckState(Qt.Checked):
-                    if random.random()<prob:
-                        self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
-                                                  'type':self.artifacts[i]})
-                    else:
-                        while True:
-                            artifact_name = all_stimuli_list.__next__()
-                            if artifact_name != self.artifacts[i]:
-                                break
-                        self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
-                                                  'type':artifact_name})
-                else:
-                    artifact_name = all_stimuli_list.__next__()
-                    self.lstOrder.append({'start_time':str(time),'end_time':str(time+float(stimulusDuration)),
-                                                  'type':artifact_name})
-                time+=float(stimulusDuration)
+                artifact_name = self.all_stimuli_list.__next__()
+                lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.stimulusDuration)),
+                                              'type':artifact_name})
+                time+=float(self.stimulusDuration)
+        
+        return lstOrder
+        
 
         
 
@@ -152,11 +153,13 @@ class TimeTable():
 
 
 
-    def writeToCSVFile(self,filename):
+    def writeToCSVFile(self,filename,stimuliList,experimenttype):
 
         with open(filename, mode='w',newline='') as csv_file:
             fieldnames = ['start_time', 'end_time', 'type']
+            if experimenttype == 'ERP':
+                fieldnames.extend(self.artifacts)
             writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
             writer.writeheader()
-            for row in self.lstOrder:
+            for row in stimuliList:
                 writer.writerow(row)

@@ -28,9 +28,6 @@ from helpers import TimeTable
 
 PAUSETEXT = 'pause'
 PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
-PAUSEID = 100
-STARTID = 200
-
 
 class MainWindow(QMainWindow):
     def __init__(self):
@@ -207,34 +204,38 @@ class MainWindow(QMainWindow):
         #self.setStyleSheet("background-color: rgb(0, 0, 0);")
 
 
-    def startPresentation(self):
+    def loadTimetable(self):
         self.showWidgets()
+        self.experimenttype,self.stimuliList,self.artifact_types  = self.timeTable.loadSettingInformation()
+        self.startPresentation()
+        
+    def startPresentation(self):
         self.timingThreads = []
-        type_list = [row['type']for row in self.timeTable.lstOrder]
         
         # Takes all entries of the list which describe an artifact
-        self.artifact_iter = iter(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
-
-        self.image_dic = self.getCurrentArtifactTypes(list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,type_list)))
+        self.artifact_list = list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,[row['type'] for row in self.stimuliList]))
+        self.artifact_iter =iter(self.artifact_list)
+        self.artifact_types_iter = iter(self.artifact_types)
         
-        self.artifact_types = cycle(self.timeTable.artifacts)
-        self.display_item_iter = iter(self.timeTable.lstOrder)
-        self.pSender.send_parallel(None,None,STARTID)
+        self.image_dic = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in self.artifact_list}
+        
+        self.display_item_iter = iter(self.stimuliList)
+        self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Start']))
         self.runNextItem()
-    
-    def getCurrentArtifactTypes(self,lst):
-        artifact_types = list(set(lst))
-        image_dict = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in artifact_types}
-        return image_dict
 
     def runNextItem(self):
         try:
             current_item = self.display_item_iter.__next__()
-            _thread.start_new_thread(self.displayInfo,(current_item['type'],float(current_item['end_time'])-float(current_item['start_time'])))
+            if self.experimenttype == 'ERP':
+                _thread.start_new_thread(self.displayInfoERP,(current_item['type'],float(current_item['end_time'])-float(current_item['start_time'])))
+            elif self.experimenttype == 'Artifact':
+                _thread.start_new_thread(self.displayInfoArtifact,(current_item['type'],float(current_item['end_time'])-float(current_item['start_time'])))
+            
             t =Timer(float(current_item['end_time'])-float(current_item['start_time']),self.runNextItem)
             t.start()
             self.timingThreads.append(t)
         except StopIteration:
+            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','End']))
             self.hideWidgets()
 
     def startPresentationFromFile(self):
@@ -243,58 +244,61 @@ class MainWindow(QMainWindow):
         # Extract all artifacts which are not pauses from csv file
         with open(self.stimulusFilename, mode='r',newline='') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
-            lst=[row[2] for row in csv_reader]
-            self.artifact_iter = iter(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,lst))
-
-
-        with open(self.stimulusFilename, mode='r',newline='') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            next(csv_reader)
+            firstrow = next(csv_reader)
+            if len(firstrow) > 3:
+                self.experimenttype = 'ERP'
+                self.artifact_types = firstrow[3:]
+            else:
+                self.experimenttype = 'Artifact'
+            
+            self.stimuliList =[]
             while True:
                 try:
                     row = csv_reader.__next__()
-                    Timer(int(row[0]),self.displayInfo,[row[2],int(row[1])-int(row[0])]).start()
+                    self.stimuliList.append({firstrow[0]:row[0],firstrow[1]:row[1],firstrow[2]:row[2]})
                 except StopIteration:
-                    Timer(int(row[1]),self.hideWidgets).start()
                     break
+            if self.experimenttype == 'Artifact':
+                self.artifact_types = [row['type'] for row in self.stimuliList]
+            self.startPresentation()
 
-
-
-
-    def displayInfo(self,text,count):
+    def displayInfoERP(self,text,count):
         # distinguish between circular and numerical representation
         
         if text==PAUSETEXT:
-            self.pSender.send_parallel(None,None,PAUSEID)
+            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
             self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
         elif text==PAUSEBETWEENTRIALSTEXT:
-            self.pSender.send_parallel(None,None,PAUSEID)
-            if self.timeTable.ERP == True:
-                ### The one which is the target stimulus
-                self.currentTarget=self.artifact_types.__next__()
-                self.lblCircle.setImage(self.image_dic[self.currentTarget])
+            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
+            self.currentTarget=self.artifact_types_iter.__next__()
+            self.lblCircle.setImage(self.image_dic[self.currentTarget])
         else:
-            if self.timeTable.ERP == True:
-                if text == self.currentTarget:
-                    self.pSender.send_parallel(None,None,1)
-                else:
-                    self.pSender.send_parallel(None,None,2)
+            if text == self.currentTarget:
+                self.pSender.send_parallel(None,None,self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Target'])))
             else:
-                self.pSender.send_parallel(None,None,self.XML_Read.getValue(['ArtefactCategories',text,'ID']))
+                self.pSender.send_parallel(None,None,self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','NonTarget'])))
             
-        if self.timeTable.ERP == True:
-            experimentType='P300'
+        self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,self.experimenttype))
+        self.circleAnimationThread.start()
+        
+    def displayInfoArtifact(self,text,count):
+        # distinguish between circular and numerical representation
+        
+        if text==PAUSETEXT:
+            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
+            self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
+        elif text==PAUSEBETWEENTRIALSTEXT:
+            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
         else:
-            experimentType='standard'
-            
-        self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,experimentType))
+            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['ArtefactCategories',text,'ID']))
+        
+        self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,self.experimenttype))
         self.circleAnimationThread.start()
         
 
     def makeTimeTable(self,settingOrderPath,settingTrialPath):
         self.timeTable = TimeTable(settingOrderPath,settingTrialPath,self.XML_Read)
-        self.startPresentation()
+        self.loadTimetable()
 
     def stopPresentation(self):
         if hasattr(self,'timingThreads'):
@@ -309,14 +313,6 @@ class MainWindow(QMainWindow):
             self.settingTrial.close()
         self.stopPresentation()
         self.close()
-        
-    def keyPressEvent(self,e):
-        # Check for Ctrl + d
-        if e.key() == Qt.Key_D and QApplication.keyboardModifiers() and Qt.ControlModifier :
-            if self.displayWidget.currentIndex() == 0:
-                self.displayWidget.setCurrentIndex(1)
-            elif self.displayWidget.currentIndex() == 1:
-                self.displayWidget.setCurrentIndex(0)
 
 
 class QLabelCircle(QWidget):
@@ -325,6 +321,7 @@ class QLabelCircle(QWidget):
         self.setAngle(0)
         self.arcWidth = width
         self.arcColor = 'gray'
+        self.addText = None
         
     
     def addImageLabel(self):
@@ -353,7 +350,7 @@ class QLabelCircle(QWidget):
         
     def startAnimationThread(self,count,text,experimentType='standard'):
         self.addText=False
-        if experimentType == 'P300':
+        if experimentType == 'ERP':
             self.lblImage.setOpacity(0)
             if text == PAUSETEXT:
                 self.setAngle(0)
@@ -368,12 +365,16 @@ class QLabelCircle(QWidget):
                 self.lblImage.setOpacity(1)
                 self.update()
         else:
-            if text == PAUSETEXT or text == PAUSEBETWEENTRIALSTEXT:
+            if text == PAUSETEXT :
                 self.lblImage.setOpacity(0.3)
-                self.arcColor = 'gray'              
+                self.arcColor = 'gray'
+            elif text == PAUSEBETWEENTRIALSTEXT:
+                self.lblImage.setOpacity(0)
+                self.arcColor = 'gray'
             else:
                 self.lblImage.setOpacity(1)
                 self.arcColor = 'green'
+            self.runCircleAnimation(count)
 
     def runCircleAnimation(self,count):
         startTime = time.time()
