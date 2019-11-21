@@ -30,17 +30,14 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_2">
       <item>
-       <widget class="QRadioButton" name="rbUserDefined">
+       <widget class="QLabel" name="label_2">
         <property name="text">
-         <string>User Defined</string>
-        </property>
-        <property name="checked">
-         <bool>true</bool>
+         <string>General Settings</string>
         </property>
        </widget>
       </item>
       <item>
-       <layout class="QFormLayout" name="formLayoutUserDefined">
+       <layout class="QFormLayout" name="formLayoutGeneral">
         <item row="1" column="0">
          <widget class="QLabel" name="lblTrialDuration">
           <property name="text">
@@ -58,27 +55,6 @@
           </property>
          </widget>
         </item>
-        <item row="3" column="0">
-         <widget class="QLabel" name="lblPause">
-          <property name="text">
-           <string>Pause between stimuli (s)</string>
-          </property>
-         </widget>
-        </item>
-        <item row="4" column="0">
-         <widget class="QCheckBox" name="cbRandomizeStimuli">
-          <property name="text">
-           <string>Randomize stimuli order</string>
-          </property>
-         </widget>
-        </item>
-        <item row="5" column="0">
-         <widget class="QCheckBox" name="cbP300Simulation">
-          <property name="text">
-           <string>P300 Simulation</string>
-          </property>
-         </widget>
-        </item>
         <item row="2" column="1">
          <widget class="QDoubleSpinBox" name="sbStimulusDuration">
           <property name="decimals">
@@ -86,6 +62,13 @@
           </property>
           <property name="singleStep">
            <double>0.100000000000000</double>
+          </property>
+         </widget>
+        </item>
+        <item row="3" column="0">
+         <widget class="QLabel" name="lblPause">
+          <property name="text">
+           <string>Pause between stimuli (s)</string>
           </property>
          </widget>
         </item>
@@ -99,6 +82,13 @@
           </property>
          </widget>
         </item>
+        <item row="4" column="0">
+         <widget class="QCheckBox" name="cbRandomizeStimuli">
+          <property name="text">
+           <string>Randomize stimuli order</string>
+          </property>
+         </widget>
+        </item>
        </layout>
       </item>
       <item>
@@ -109,22 +99,58 @@
        </widget>
       </item>
       <item>
-       <widget class="QRadioButton" name="rbRandom">
+       <widget class="QRadioButton" name="rbArtifacts">
         <property name="text">
-         <string>Pseudo Random</string>
+         <string>Artifacts</string>
+        </property>
+        <property name="checked">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
       <item>
-       <layout class="QFormLayout" name="formLayoutRandom">
+       <widget class="Line" name="line_2">
+        <property name="orientation">
+         <enum>Qt::Horizontal</enum>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QRadioButton" name="rbERP">
+        <property name="text">
+         <string>ERP Simlation</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QFormLayout" name="formLayoutERP">
         <property name="sizeConstraint">
          <enum>QLayout::SetMinimumSize</enum>
         </property>
-        <item row="1" column="0">
-         <widget class="QCheckBox" name="checkBox_2">
+        <item row="0" column="0">
+         <widget class="QLabel" name="lblTargetStimulusProbability">
           <property name="text">
-           <string>CheckBox</string>
+           <string>Target Stimulus Probability</string>
           </property>
+         </widget>
+        </item>
+        <item row="0" column="1">
+         <widget class="QComboBox" name="cbProbability">
+          <item>
+           <property name="text">
+            <string>0.2</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>0.3</string>
+           </property>
+          </item>
+          <item>
+           <property name="text">
+            <string>0.4</string>
+           </property>
+          </item>
          </widget>
         </item>
        </layout>

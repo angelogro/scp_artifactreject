@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/all_cat_10trials.xml</ArtifactOrder>
-		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/p300.xml</TrialSettings>
+		<ArtifactOrder>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_ArtifactOrder/all_cat_10trials.xml</ArtifactOrder>
+		<TrialSettings>/home/angelo/ml/SCP_second/scp_artifactreject/Settings_Trial/p300_withprob.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>

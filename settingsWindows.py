@@ -169,8 +169,8 @@ class SettingTrial(QDialog):
         super().__init__()
         self.XML_Read = xml_config_read
         uic.loadUi(os.path.join(self.XML_Read.getValue(['Paths','Designer_File_Folder']),'trialSetting.ui'),self)
-        self.rbRandom.clicked.connect(lambda x: self.activateFormLayout(self.rbRandom))
-        self.rbUserDefined.clicked.connect(lambda x: self.activateFormLayout(self.rbUserDefined))
+        self.rbERP.clicked.connect(lambda x: self.activateFormLayout(self.rbERP))
+        self.rbArtifacts.clicked.connect(lambda x: self.activateFormLayout(self.rbArtifacts))
         self.btnSave.clicked.connect(self.saveSettings)
         self.btnLoad.clicked.connect(self.loadSettings)
         if xml_file and os.path.isfile(xml_file):
@@ -178,19 +178,13 @@ class SettingTrial(QDialog):
         self.show()
         
     def activateFormLayout(self,object_):
-        if object_ is self.rbRandom:
-            for i in range(self.formLayoutUserDefined.count()):
-                item = self.formLayoutUserDefined.itemAt(i)
-                item.widget().setEnabled(False)
-            for i in range(self.formLayoutRandom.count()):
-                item = self.formLayoutRandom.itemAt(i)
+        if object_ is self.rbERP:
+            for i in range(self.formLayoutERP.count()):
+                item = self.formLayoutERP.itemAt(i)
                 item.widget().setEnabled(True)
-        elif object_ is self.rbUserDefined:
-            for i in range(self.formLayoutUserDefined.count()):
-                item = self.formLayoutUserDefined.itemAt(i)
-                item.widget().setEnabled(True)
-            for i in range(self.formLayoutRandom.count()):
-                item = self.formLayoutRandom.itemAt(i)
+        elif object_ is self.rbArtifacts:
+            for i in range(self.formLayoutERP.count()):
+                item = self.formLayoutERP.itemAt(i)
                 item.widget().setEnabled(False)
                 
     def loadSettings(self,event,xml_file=None):
@@ -209,18 +203,19 @@ class SettingTrial(QDialog):
                 xmlReader = XML_Read(fileName[0])
                 self.currentXMLfilepath = fileName[0]
 
-        self.sbTrialDuration.setValue(int(xmlReader.getValue(['TrialSettings','UserDefined','sbTrialDuration'])))
-        self.sbStimulusDuration.setValue(float(xmlReader.getValue(['TrialSettings','UserDefined','sbStimulusDuration'])))
-        self.sbPause.setValue(float(xmlReader.getValue(['TrialSettings','UserDefined','sbPause'])))
-        self.cbRandomizeStimuli.setCheckState(int(xmlReader.getValue(['TrialSettings','UserDefined','cbRandomizeStimuli'])))
-        self.cbP300Simulation.setCheckState(int(xmlReader.getValue(['TrialSettings','UserDefined','cbP300Simulation'])))
+        self.sbTrialDuration.setValue(int(xmlReader.getValue(['TrialSettings','GeneralSettings','sbTrialDuration'])))
+        self.sbStimulusDuration.setValue(float(xmlReader.getValue(['TrialSettings','GeneralSettings','sbStimulusDuration'])))
+        self.sbPause.setValue(float(xmlReader.getValue(['TrialSettings','GeneralSettings','sbPause'])))
+        self.cbRandomizeStimuli.setCheckState(int(xmlReader.getValue(['TrialSettings','GeneralSettings','cbRandomizeStimuli'])))
+        index = self.cbProbability.findText(xmlReader.getValue(['TrialSettings','ERP','cbProbability']))
+        if  index != -1 :
+            self.cbProbability.setCurrentIndex(index)
 
-        if xmlReader.getAttrib(['TrialSettings','UserDefined'],'Checked') == 'True':
-            self.rbUserDefined.setChecked(True)
-            self.activateFormLayout(self.rbUserDefined)
-        if xmlReader.getAttrib(['TrialSettings','Random'],'Checked') == 'True':
-            self.rbRandom.setChecked(True)
-            self.activateFormLayout(self.rbRandom)
+        if xmlReader.getAttrib(['TrialSettings','Artifacts'],'Checked') == 'True':
+            pass
+        if xmlReader.getAttrib(['TrialSettings','ERP'],'Checked') == 'True':
+            self.rbERP.setChecked(True)
+            self.activateFormLayout(self.rbERP)
         
     def saveSettings(self,event,filename=None):
         if not filename:
@@ -236,16 +231,19 @@ class SettingTrial(QDialog):
         stream.writeStartDocument()
         stream.writeStartElement("Data")
         stream.writeStartElement("TrialSettings")
-        stream.writeStartElement('UserDefined')
-        stream.writeAttribute('Checked',str(self.rbUserDefined.isChecked()))
+        stream.writeStartElement('GeneralSettings')
+        
         stream.writeTextElement(self.sbTrialDuration.objectName(),str(self.sbTrialDuration.value()))
         stream.writeTextElement(self.sbStimulusDuration.objectName(),str(self.sbStimulusDuration.value()))
         stream.writeTextElement(self.sbPause.objectName(),str(self.sbPause.value()))
         stream.writeTextElement(self.cbRandomizeStimuli.objectName(),str(self.cbRandomizeStimuli.checkState()))
-        stream.writeTextElement(self.cbP300Simulation.objectName(),str(self.cbP300Simulation.checkState()))
         stream.writeEndElement()
-        stream.writeStartElement('Random')
-        stream.writeAttribute('Checked',str(self.rbRandom.isChecked()))
+        stream.writeStartElement('Artifacts')
+        stream.writeAttribute('Checked',str(self.rbArtifacts.isChecked()))
+        stream.writeEndElement()
+        stream.writeStartElement('ERP')
+        stream.writeAttribute('Checked',str(self.rbERP.isChecked()))
+        stream.writeTextElement(self.cbProbability.objectName(),str(self.cbProbability.currentText()))
         stream.writeEndElement()
         stream.writeEndElement()
         stream.writeEndElement()
