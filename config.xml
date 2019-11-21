@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/short_test.xml</ArtifactOrder>
-		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/quickerp.xml</TrialSettings>
+		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/sixCat.xml</ArtifactOrder>
+		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/erp_sixstimuli.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>

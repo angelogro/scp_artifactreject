@@ -226,6 +226,7 @@ class MainWindow(QMainWindow):
     def runNextItem(self):
         try:
             current_item = self.display_item_iter.__next__()
+            
             if self.experimenttype == 'ERP':
                 _thread.start_new_thread(self.displayInfoERP,(current_item['type'],float(current_item['end_time'])-float(current_item['start_time'])))
             elif self.experimenttype == 'Artifact':
@@ -274,9 +275,9 @@ class MainWindow(QMainWindow):
             self.lblCircle.setImage(self.image_dic[self.currentTarget])
         else:
             if text == self.currentTarget:
-                self.pSender.send_parallel(None,None,self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Target'])))
+                self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Target']))
             else:
-                self.pSender.send_parallel(None,None,self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','NonTarget'])))
+                self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','NonTarget']))
             
         self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,self.experimenttype))
         self.circleAnimationThread.start()
