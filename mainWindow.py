@@ -31,19 +31,7 @@ PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
 
 class MainWindow(QMainWindow):
     def __init__(self):
-        """
-        Initializing function of main window.
-
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
-        """
+        """ Initializing function of main window. """
 
         super().__init__()
         self.loadXMLFile()
@@ -52,6 +40,8 @@ class MainWindow(QMainWindow):
         self.pSender = ParallelSender()
 
     def loadXMLFile(self):
+        """ Loading config.xml file. """
+        
         if os.path.isfile('config.xml'):
             self.XML_Read = XML_Read()
         else:
@@ -60,30 +50,21 @@ class MainWindow(QMainWindow):
             sys.exit()
 
     def initUI(self):
+        """ Initialize layout and GUI
+        
+        Connects button click events to different functions.
         """
-        Initialize layout and GUI
-
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
-        """
-
         uic.loadUi(os.path.join(self.XML_Read.getValue(['Paths','Designer_File_Folder']),'mainWindow_circle.ui'),self)
         self.actionArtefact_Order.triggered.connect(self.openSettingArtefactOrder)
         self.actionStimulus_Order.triggered.connect(self.openSettingTrial)
         self.actionStart.triggered.connect(self.startPresentationClicked)
+        self.actionStart_from_file.triggered.connect(self.startPresentationFromFile)
         self.actionStop.triggered.connect(self.stopPresentation)
         self.actionLoad_Stimulus_File.triggered.connect(self.openStimulusFile)
         self.actionSave_Stimulus_File.triggered.connect(self.openSettingArtefactOrder)
         self.actionQuit_Program.triggered.connect(self.close)
-        self.pathArt = None
-        self.pathTrial = None
+        self.pathArtefactSettings = None
+        self.pathTrialSettings = None
         self.getSettingsPaths()
         
         self.lblCircle = QLabelCircle()
@@ -92,131 +73,132 @@ class MainWindow(QMainWindow):
         
         self.hideWidgets()
         self.show()
-        
-        
 
     def showWidgets(self):
-        """
-        Used for displaying all relevant labels.
-
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
-        """
+        """ Used for displaying all relevant labels. """
         self.lblCircle.show()
 
     def hideWidgets(self):
-        """
-        Used for hiding all relevant labels.
-
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
-        """
+        """ Used for hiding all relevant labels. """
         self.lblCircle.hide()
 
     def getSettingsPaths(self):
-        """
-        Gets pathes of the setting xml files which are currently used for
+        """ Gets paths of the setting xml files which are currently used for
         generating a stimulus csv file.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
         """
         pathArt = self.XML_Read.getValue(['Paths','ArtifactOrder'])
         if pathArt:
-            self.pathArt = pathArt
+            self.pathArtefactSettings = pathArt
         pathTrial = self.XML_Read.getValue(['Paths','TrialSettings'])
         if pathTrial:
-            self.pathTrial = pathTrial
+            self.pathTrialSettings = pathTrial
 
     def openSettingArtefactOrder(self):
-        self.settingArtefactOrder = SettingArtefactOrder(self.XML_Read,self.pathArt)
+        """ Opens a specific Artefact Setting file. 
+        
+        The path stored in pathArtefactSettings will be loaded.
+        """
+        self.settingArtefactOrder = SettingArtefactOrder(self.XML_Read,self.pathArtefactSettings)
 
     def openStimulusFile(self):
-        self.stimulusFilename,filetype = QFileDialog.getOpenFileName(None,"Stimulus file", os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','StimulusFilesDefault'])),
-                                                        "CSV Files (*.csv)")
+        """ Opens a specific Stimulus file which was stored in .csv format. """
+        self.stimulusFilename,filetype = QFileDialog.getOpenFileName(None,
+                                                                     "Stimulus file", 
+                                                                     os.path.join(QtCore.QDir.currentPath(),self.XML_Read.getValue(['Paths','StimulusFilesDefault'])),
+                                                                     "CSV Files (*.csv)")
 
     def openSettingTrial(self):
-        self.settingTrial = SettingTrial(self.XML_Read,self.pathTrial)
+        """ Opens a specific Trial Setting file. 
+        
+        The path stored in pathTrialSettings will be loaded.
+        """
+        self.settingTrial = SettingTrial(self.XML_Read,self.pathTrialSettings)
 
     def startPresentationClicked(self):
+        """ Logic of what happens if Start (F5) is pressed.
+
+        Checks if a settingArtefactOrder and settingTrial have their
+        currentXMLfilepath set and try to load the corresponding settings.
+        If currentXMLfilepath is not set the current settings are saved to
+        temporary xml files.
+        Using these settings a stimulus file is created and the experiment is 
+        started.
         """
-        Logic of what happens if start is pressed.
-
-        Parameters
-        ----------
-        None
-
-        Returns
-        -------
-        None
-
-        """
-        # Checks if a stimulusfile exists already and hence starts a stimulus
-        # presentation based on that file.
-        if hasattr(self,'stimulusFilename'):
-            if self.stimulusFilename is not None:
-                self.startPresentationFromFile()
-                return
-            
         if hasattr(self,'settingArtefactOrder'):
             if hasattr(self.settingArtefactOrder,'currentXMLfilepath'):
-                self.pathArt = self.settingArtefactOrder.currentXMLfilepath
+                self.pathArtefactSettings = self.settingArtefactOrder.currentXMLfilepath
                 if not self.settingArtefactOrder.currentXMLfilepath == 'temp_ordersettings.xml':
-                    self.XML_Read.saveValue(['Paths','ArtifactOrder'],self.pathArt)
+                    self.XML_Read.saveValue(['Paths','ArtifactOrder'],self.pathArtefactSettings)
 
         if hasattr(self,'settingTrial'):
             if hasattr(self.settingTrial,'currentXMLfilepath'):
-                self.pathTrial = self.settingTrial.currentXMLfilepath
+                self.pathTrialSettings = self.settingTrial.currentXMLfilepath
                 if not self.settingTrial.currentXMLfilepath == 'temp_trialsettings.xml':
-                    self.XML_Read.saveValue(['Paths','TrialSettings'],self.pathTrial)
+                    self.XML_Read.saveValue(['Paths','TrialSettings'],self.pathTrialSettings)
                     
-        if self.pathArt is not None and self.pathTrial is not None:
-            if os.path.isfile(self.pathArt) and os.path.isfile(self.pathTrial):
-                self.makeTimeTable(self.pathArt,self.pathTrial)
+        if self.pathArtefactSettings is not None and self.pathTrialSettings is not None:
+            if os.path.isfile(self.pathArtefactSettings) and os.path.isfile(self.pathTrialSettings):
+                self.makeTimeTable(self.pathArtefactSettings,self.pathTrialSettings)
             else:
-                text = 'Artifact Order XML file path {} is not a file. \n'.format(self.pathArt) if not os.path.isfile(self.pathArt) else ''
-                text2 = 'Trial Settings XML file path {} is not a file.'.format(self.pathTrial) if not os.path.isfile(self.pathTrial) else ''
-                q = QMessageBox.warning(None,'Could not start the stimulus presentation.',text+text2)
+                text = 'Artifact Order XML file path {} is not a file. \n'.format(self.pathArtefactSettings) if not os.path.isfile(self.pathArtefactSettings) else ''
+                text2 = 'Trial Settings XML file path {} is not a file.'.format(self.pathTrialSettings) if not os.path.isfile(self.pathTrialSettings) else ''
+                QMessageBox.warning(None,'Could not start the stimulus presentation.',text+text2)
         else:
-            text = 'Artifact Order XML file path is empty. \n' if self.pathArt is None else ''
-            text2 = 'Trial Settings XML file path is empty.' if self.pathTrial is None else ''
-            q = QMessageBox.warning(None,'Could not start the stimulus presentation.',text+text2)
-        #self.setStyleSheet("background-color: rgb(0, 0, 0);")
+            text = 'Artifact Order XML file path is empty. \n' if self.pathArtefactSettings is None else ''
+            text2 = 'Trial Settings XML file path is empty.' if self.pathTrialSettings is None else ''
+            QMessageBox.warning(None,'Could not start the stimulus presentation.',text+text2)
+            
+    def startPresentationFromFile(self):
+        """ Logic of what happens if Start From File (F6) is pressed.
 
-
-    def loadTimetable(self):
+        Checks if a the instance has a valid stimulus file loaded already.
+        If so the stimulus file (.csv) is read and the experiment is started
+        according to it.
+        """
+        if hasattr(self,'stimulusFilename'):
+            if self.stimulusFilename is None:
+                QMessageBox.warning(None,'Could not start the stimulus presentation.','No file has been loaded.')
+                return
+        else:
+            QMessageBox.warning(None,'Could not start the stimulus presentation.','No file has been loaded.')
+            return
+        
         self.showWidgets()
-        self.experimenttype,self.stimuliList,self.artifact_types  = self.timeTable.loadSettingInformation()
-        self.startPresentation()
         
+        with open(self.stimulusFilename, mode='r',newline='') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            # Identify the type of experiment from csv file
+            firstrow = next(csv_reader) 
+            if len(firstrow) > 3:
+                self.experimenttype = 'ERP'
+                self.artifact_types = firstrow[3:]
+            else:
+                self.experimenttype = 'Artifact'
+            
+            self.stimuliList =[]
+            while True:
+                try:
+                    row = csv_reader.__next__()
+                    self.stimuliList.append({firstrow[0]:row[0],firstrow[1]:row[1],firstrow[2]:row[2]})
+                except StopIteration:
+                    break
+            if self.experimenttype == 'Artifact':
+                self.artifact_types = [row['type'] for row in self.stimuliList]
+            self.startPresentation()
+            
     def startPresentation(self):
+        """ Creating lists of stimuli which are to be presented.
+
+        Iterables for all artifacts as well as the artifac types are created.
+        These are step-wise iterated through in the course of the experiment.
+        The first step of the experiment is initiated.
+        """
         self.timingThreads = []
-        
-        # Takes all entries of the list which describe an artifact
         self.artifact_list = list(filter(lambda x: x != PAUSEBETWEENTRIALSTEXT and x != PAUSETEXT,[row['type'] for row in self.stimuliList]))
         self.artifact_iter =iter(self.artifact_list)
         self.artifact_types_iter = iter(self.artifact_types)
         
+        # Loads the artifact symbols into RAM
         self.image_dic = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in self.artifact_list}
         
         self.display_item_iter = iter(self.stimuliList)
@@ -239,29 +221,7 @@ class MainWindow(QMainWindow):
             self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','End']))
             self.hideWidgets()
 
-    def startPresentationFromFile(self):
-        self.showWidgets()
-        
-        # Extract all artifacts which are not pauses from csv file
-        with open(self.stimulusFilename, mode='r',newline='') as csv_file:
-            csv_reader = csv.reader(csv_file, delimiter=',')
-            firstrow = next(csv_reader)
-            if len(firstrow) > 3:
-                self.experimenttype = 'ERP'
-                self.artifact_types = firstrow[3:]
-            else:
-                self.experimenttype = 'Artifact'
-            
-            self.stimuliList =[]
-            while True:
-                try:
-                    row = csv_reader.__next__()
-                    self.stimuliList.append({firstrow[0]:row[0],firstrow[1]:row[1],firstrow[2]:row[2]})
-                except StopIteration:
-                    break
-            if self.experimenttype == 'Artifact':
-                self.artifact_types = [row['type'] for row in self.stimuliList]
-            self.startPresentation()
+    
 
     def displayInfoERP(self,text,count):
         # distinguish between circular and numerical representation
@@ -295,6 +255,13 @@ class MainWindow(QMainWindow):
         
         self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,self.experimenttype))
         self.circleAnimationThread.start()
+
+    def loadTimetable(self):
+        self.showWidgets()
+        self.experimenttype,self.stimuliList,self.artifact_types  = self.timeTable.loadSettingInformation()
+        self.startPresentation()
+        
+    
         
 
     def makeTimeTable(self,settingOrderPath,settingTrialPath):
@@ -323,6 +290,7 @@ class QLabelCircle(QWidget):
         self.arcWidth = width
         self.arcColor = 'gray'
         self.addText = None
+        self.hidden = False
         
     
     def addImageLabel(self):
@@ -382,11 +350,21 @@ class QLabelCircle(QWidget):
         n_ticks_per_second = 20
         wait_time = 1/(n_ticks_per_second)
         for i in range(int(count*n_ticks_per_second)):
+            if self.hidden == True:
+                self.setAngle(0)
+                return
+            
             self.setAngle(360*i/(n_ticks_per_second*count))
             
             if time.time()-startTime < i/n_ticks_per_second:
                 time.sleep(wait_time)
         pass
+    
+    def hideEvent(self,e):
+        self.hidden = True
+        
+    def showEvent(self,e):
+        self.hidden = False
     
     def setImage(self,image):
         self.lblImage.setPixmap(image,)

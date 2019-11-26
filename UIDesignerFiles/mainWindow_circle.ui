@@ -198,6 +198,7 @@
     </property>
     <addaction name="separator"/>
     <addaction name="actionStart"/>
+    <addaction name="actionStart_from_file"/>
    </widget>
    <widget class="QMenu" name="menuStop">
     <property name="title">
@@ -260,6 +261,14 @@
    </property>
    <property name="shortcut">
     <string>Ctrl+Q</string>
+   </property>
+  </action>
+  <action name="actionStart_from_file">
+   <property name="text">
+    <string>Start from file</string>
+   </property>
+   <property name="shortcut">
+    <string>F6</string>
    </property>
   </action>
  </widget>
