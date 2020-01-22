@@ -202,7 +202,14 @@ class MainWindow(QMainWindow):
         self.image_dic = {artifact_type:QPixmap(os.path.join(self.resourcesFolder,self.XML_Read.getValue(['ArtefactCategories',artifact_type,'SymbolFilename']))) for artifact_type in self.artifact_list}
         
         self.display_item_iter = iter(self.stimuliList)
-        self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Start']))
+        if self.experimenttype == 'ERP':
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','StartOddball'])))
+            time.sleep(0.1)
+        elif self.experimenttype == 'Artifact':
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','StartArtifact'])))
+            time.sleep(0.1)
+        
+        
         self.runNextItem()
 
     def runNextItem(self):
@@ -218,7 +225,7 @@ class MainWindow(QMainWindow):
             t.start()
             self.timingThreads.append(t)
         except StopIteration:
-            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','End']))
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','End'])))
             self.hideWidgets()
 
     
@@ -227,17 +234,18 @@ class MainWindow(QMainWindow):
         # distinguish between circular and numerical representation
         
         if text==PAUSETEXT:
-            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','Pause'])))
             self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
         elif text==PAUSEBETWEENTRIALSTEXT:
-            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','Pause'])))
             self.currentTarget=self.artifact_types_iter.__next__()
             self.lblCircle.setImage(self.image_dic[self.currentTarget])
         else:
             if text == self.currentTarget:
-                self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Target']))
+                self.pSender.send_parallel(int(self.XML_Read.getValue(['ArtefactCategories',text,'ID'])))
             else:
-                self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','NonTarget']))
+                #add up 100 to the trigger to point out it is a non-target
+                self.pSender.send_parallel(100+int(self.XML_Read.getValue(['ArtefactCategories',text,'ID'])))
             
         self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,self.experimenttype))
         self.circleAnimationThread.start()
@@ -246,12 +254,12 @@ class MainWindow(QMainWindow):
         # distinguish between circular and numerical representation
         
         if text==PAUSETEXT:
-            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','Pause'])))
             self.lblCircle.setImage(self.image_dic[self.artifact_iter.__next__()])
         elif text==PAUSEBETWEENTRIALSTEXT:
-            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['TriggerID','Pause']))
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','Pause'])))
         else:
-            self.pSender.send_parallel(None,None,self.XML_Read.getValue(['ArtefactCategories',text,'ID']))
+            self.pSender.send_parallel(int(self.XML_Read.getValue(['ArtefactCategories',text,'ID'])))
         
         self.circleAnimationThread = Thread(target=self.lblCircle.startAnimationThread,args=(count,text,self.experimenttype))
         self.circleAnimationThread.start()
@@ -269,6 +277,7 @@ class MainWindow(QMainWindow):
         self.loadTimetable()
 
     def stopPresentation(self):
+        self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','End'])))
         if hasattr(self,'timingThreads'):
             for t in self.timingThreads:
                 t.cancel()

@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_ArtifactOrder/sixCat.xml</ArtifactOrder>
-		<TrialSettings>C:/Users/agross/.spyder-py3/Projects/13_Stimulus_Presentation/scp_artifactreject/Settings_Trial/erp_sixstimuli.xml</TrialSettings>
+		<ArtifactOrder>C:/Users/bbci/Desktop/scp_artifactreject-master/Settings_ArtifactOrder/nils_6cat.xml</ArtifactOrder>
+		<TrialSettings>C:/Users/bbci/Desktop/scp_artifactreject-master/Settings_Trial/5mintrial.xml</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>
@@ -61,9 +61,11 @@
 		</Entspannen>
 	</ArtefactCategories>
 	<TriggerID>
-		<Pause>101</Pause>
+		<Pause>200</Pause>
 		<Start>102</Start>
-		<End>103</End>
+		<StartOddball>250</StartOddball>
+		<StartArtifact>251</StartArtifact>
+		<End>255</End>
 		<Target>200</Target>
 		<NonTarget>201</NonTarget>
 	</TriggerID>

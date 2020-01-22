@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<Data>
+    <Order>
+        <FussBewegen></FussBewegen>
+        <ZungeGegenGaumen></ZungeGegenGaumen>
+        <ZaehneBeissen></ZaehneBeissen>
+        <LuftAnhalten></LuftAnhalten>
+        <NaseRuempfen></NaseRuempfen>
+        <Schlucken></Schlucken>
+    </Order>
+    <PauseInBetweenTrials>
+        <Minute>0</Minute>
+        <Second>15</Second>
+    </PauseInBetweenTrials>
+    <AmountOfTrials>1</AmountOfTrials>
+</Data>

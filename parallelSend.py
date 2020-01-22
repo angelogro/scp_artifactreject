@@ -6,7 +6,7 @@ class ParallelSender():
         if sys.platform == 'win32':
             try:
                 from ctypes import windll
-                self.pport = windll.inpout32
+                self.pport = windll.LoadLibrary('inpoutx64.dll')
             except:
                 print("Could not load inpout32.dll. Please make sure it is located in the system32 directory")
         else:
@@ -17,20 +17,20 @@ class ParallelSender():
                 print("Unable to open parallel port! Please install pyparallel to use it.")
         size_argv = len(sys.argv);
         
-        self.triggerResetTime = 0.1
+        self.triggerResetTime = 0.01
         if(size_argv>1):
             self.port_num=int(sys.argv[1],16);
         else:
-            self.port_num=0x378;
+            self.port_num=0x3010;
 
 
-    def send_parallel(self,pport, port_num, data, reset=True):
+    def send_parallel(self,data, reset=True):
     
         """Sends the data to the parallel port."""
         
         ### HAS TO BE ERASED WHEN PARALLEL PORT WORKS FINE
         print(data)
-        return
+        #return
         
         
         
@@ -38,12 +38,13 @@ class ParallelSender():
             # A new trigger arrived before we could reset the old one
             if hasattr(self,'triggerResetTimer'):
                 self.triggerResetTimer.cancel()
-        if pport:
+        if self.pport:
             if sys.platform == 'win32':
-                pport.Out32(port_num, data)
+                self.pport.Out32(self.port_num, data)
             else:
-                pport.setData(data)
+                self.pport.setData(data)
             if reset:
-                self.triggerResetTimer = Timer(self.triggerResetTime, self.send_parallel, (pport,port_num,0x0, False))
+                self.triggerResetTimer = Timer(self.triggerResetTime, self.send_parallel, (0, False))
                 self.triggerResetTimer.start()
+
 
