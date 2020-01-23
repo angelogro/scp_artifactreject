@@ -30,6 +30,99 @@ PAUSETEXT = 'pause'
 PAUSEBETWEENTRIALSTEXT = 'pause_between_trials'
 
 class MainWindow(QMainWindow):
+    """
+    Main Window for displaying stimuli, displaying symbols which make the user 'perform'
+    artificial artifacts.
+    
+    Attributes
+    ----------
+    psender : ParallelSender
+        sends triggers to the parallel port of the device
+    XML_Read : XML_Read
+        contains paths and existing artifact names necessary for the program
+    pathArtifactSettings : str
+        path to currently loaded artifact settings, containing the order of artifacts
+    pathTrialSettings : str
+        path to currently loaded trail settings, containing timing information for stimuli
+    resourcesFolder : str
+        path to resources folder
+    settingArtifactOrder : SettingArtifactOrder
+        SettingArtifactOrder object (Qt MainWindow), for setting up artifact order
+    settingTrial : SettingTrial
+        SettingTrial object (Qt MainWindow), for setting up in-trial timing
+    stimulusFilename : str
+        path to .csv file containing timing information of a whole experiment
+    experimenttype : str
+        either 'ERP' or 'Artifact'
+    artifact_types : list(str)
+        in ERP experiment it is the order of target stimuli, in Artifact experiment
+        it is the ordered list of all presented stimuli
+    stimuliList : list(float,float,str)
+        contains start time, end time and artifact types of all the experiments stimuli
+    artifact_list : list(float,float,str)
+        same as stimuliList but not containing PAUSE stimuli
+    artifact_iter : iter
+        iter object of artifact_list
+    artifact_types_iter : iter
+        iter object of artifact_types
+    image_dic : dict(str,QPixmap)
+        key - artifact name; value - QPixmap from resourcesFolder
+    display_item_iter : iter
+        iter object of stimuliList
+    timingThreads : list(Thread)
+        contains all timing threads of upcoming stimuli which still can be cancelled
+    timeTable : TimeTable
+        contains ordered stimulus information: start time, end time, arifact type       
+    lblCircle : QLabelCircle
+        QLabel displaying a filling up circle, representing elapsed time        
+    circleAnimationThread : Thread
+        Thread to star the circle animation
+    currentTarget : str
+        Artifact type in ERP experiment representing the current target stimulus
+    
+
+    Methods
+    -------
+    __init__() :
+        Initializing function of main window.
+    loadXMLFile() :
+        Loading config.xml file.
+    initUI() :
+        Initialize layout and GUI
+    showWidgets() :
+        Used for displaying all relevant labels.
+    hideWidgets() :
+        Used for hiding all relevant labels.
+    getSettingsPaths() :
+        Gets paths of the setting xml files which are currently used for
+        generating a stimulus csv file.
+    openSettingArtifactOrder() :
+        Opens a specific Artifact Setting file.
+    openStimulusFile() :
+        Opens a specific Stimulus file which was stored in .csv format.         
+    openSettingTrial() :
+        Opens a specific Trial Setting file. 
+    startPresentationClicked() :
+        Logic of what happens if Start (F5) is pressed.
+    startPresentationFromFile() :
+        Logic of what happens if Start From File (F6) is pressed.
+    startPresentation() :
+        Creating lists of stimuli which are to be presented.
+    runNextItem() :
+        Runs the next presented stimulus in the simuli list. 
+    displayInfoERP(text,count) :
+        Creating lists of stimuli which are to be presented in ERP experiment.
+    displayInfoArtifact(text,count) :
+        Creating lists of stimuli which are to be presented in Artifact experiment.
+    loadTimetable() :
+        Loads information from timeTable object and starts presentation. 
+    makeTimeTable(settingOrderPath,settingTrialPath):
+        Creates an experiment time plan according to setting files. 
+    stopPresentation() :
+        Stops presentation and cancel all timed threads. 
+    closeEvent(event):
+        Destroys setting windows if open and stops the presentation. 
+    """
     def __init__(self):
         """ Initializing function of main window. """
 
@@ -213,6 +306,7 @@ class MainWindow(QMainWindow):
         self.runNextItem()
 
     def runNextItem(self):
+        """ Runs the next presented stimulus in the simuli list. """
         try:
             current_item = self.display_item_iter.__next__()
             
@@ -231,7 +325,16 @@ class MainWindow(QMainWindow):
     
 
     def displayInfoERP(self,text,count):
-        # distinguish between circular and numerical representation
+        """ Creating lists of stimuli which are to be presented in ERP experiment.
+        
+        The image corresponding to the 'text' is set visible on the
+        screen for 'count' seconds. The function also sends out triggers via
+        the parallel port.
+
+        Keyword arguments:
+        text -- the text of the item to be displayed
+        count -- the amount of seconds (float) the item is displayed
+        """
         
         if text==PAUSETEXT:
             self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','Pause'])))
@@ -251,7 +354,16 @@ class MainWindow(QMainWindow):
         self.circleAnimationThread.start()
         
     def displayInfoArtifact(self,text,count):
-        # distinguish between circular and numerical representation
+        """ Creating lists of stimuli which are to be presented in Artifact experiment.
+        
+        The image corresponding to the 'text' is set visible on the
+        screen for 'count' seconds. The function also sends out triggers via
+        the parallel port.
+
+        Keyword arguments:
+        text -- the text of the item to be displayed
+        count -- the amount of seconds (float) the item is displayed
+        """
         
         if text==PAUSETEXT:
             self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','Pause'])))
@@ -265,18 +377,23 @@ class MainWindow(QMainWindow):
         self.circleAnimationThread.start()
 
     def loadTimetable(self):
+        """ Loads information from timeTable object and starts presentation. """
         self.showWidgets()
         self.experimenttype,self.stimuliList,self.artifact_types  = self.timeTable.loadSettingInformation()
         self.startPresentation()
         
-    
-        
-
     def makeTimeTable(self,settingOrderPath,settingTrialPath):
+        """ Creates an experiment time plan according to setting files. 
+        
+        Keyword arguments:
+        settingOrderPath -- path to settings file containing artifact order
+        settingTrialPath -- path to settings file containing stimulus timings
+        """
         self.timeTable = TimeTable(settingOrderPath,settingTrialPath,self.XML_Read)
         self.loadTimetable()
 
     def stopPresentation(self):
+        """ Stops presentation and cancel all timed threads. """
         self.pSender.send_parallel(int(self.XML_Read.getValue(['TriggerID','End'])))
         if hasattr(self,'timingThreads'):
             for t in self.timingThreads:
@@ -284,6 +401,7 @@ class MainWindow(QMainWindow):
         self.hideWidgets()
 
     def closeEvent(self,event):
+        """ Destroys setting windows if open and stops the presentation. """
         if hasattr(self,'settingArtefactOrder'):
             self.settingArtefactOrder.close()
         if hasattr(self,'settingTrial'):
@@ -293,7 +411,51 @@ class MainWindow(QMainWindow):
 
 
 class QLabelCircle(QWidget):
+    """
+    QWidget consisting of a centered image surrounded by a circle
+    
+    Attributes
+    ----------
+    arcWidth : int
+        width of the arc/circle in pixels
+    arcColor : QColor
+        color of the arc/circle
+    addText : boolean
+        whether text is displayed additionally to the displayed symbol
+    hidden : boolean
+        whether this widget is hidden
+    lblImage : QLabelOpaque
+        label with variable opacity where image is displayed
+    angle : float
+        angle of the displayed arc/circle
+        
+    Methods
+    -------
+    __init__(width=10) :
+        Initializing function of main window.
+    addImageLabel() :
+        Adding QLableOpaque to the widget.
+    paintEvent(e) :
+        Overwritten paintEvent method. 
+    setAngle(angle) :
+        Sets the current angle of the arc/circle. 
+    startAnimationThread(count,text,experimentType='standard') :
+        Starts the filling up circle animation.
+    runCircleAnimation(count) :
+        Runs the circle animation. 
+    hideEvent(e) :
+        Overwritten hide event method.        
+    showEvent(e) :
+        Overwritten show event method.
+    setImage(image) :
+        Sets an image to the image widget.
+    """
     def __init__(self,width=10,*args, **kwargs):
+        """ Initializing the widget
+        
+        Keyword arguments:
+        width -- width of the arc/circle
+        """
         super().__init__( *args, **kwargs)
         self.setAngle(0)
         self.arcWidth = width
@@ -303,12 +465,20 @@ class QLabelCircle(QWidget):
         
     
     def addImageLabel(self):
+        """ Adding QLableOpaque to the widget. """
         self.lblImage = QLabelOpaque()
         self.lblImage.setScaledContents(True)
         self.lblImage.setParent(self)
         self.lblImage.setGeometry( QRect(75, 75, self.parentWidget().width()-160, self.parentWidget().height()-160))
         
     def paintEvent(self,e):
+        """ Overwritten paintEvent method. 
+        
+        Sets current arc color and width and adds text if necessary.
+        
+        Keyword arguments:
+        e -- sender which triggered the event
+        """
         painter = QtGui.QPainter(self)
         pen = QtGui.QPen()
         pen.setColor(QtGui.QColor(self.arcColor))
@@ -323,10 +493,26 @@ class QLabelCircle(QWidget):
             painter.drawStaticText(QPoint(90,40),text)
         
     def setAngle(self, angle):
+        """ Sets the current angle of the arc/circle. 
+        
+        Keyword arguments:
+        angle -- angle of the arc/circle
+        """
         self.angle = angle
         self.update()
         
     def startAnimationThread(self,count,text,experimentType='standard'):
+        """ Starts the filling up circle animation. 
+        
+        Adapts the color and angle of the circle and the opacity of the image
+        depending on the experiment type and wether it is an artifact or pause
+        stimulus.
+        
+        Keyword arguments:
+        count -- time in seconds which needs to elapse before circle is filled
+        text -- text displayed in the widget
+        experimentType -- either ERP or Artifact
+        """
         self.addText=False
         if experimentType == 'ERP':
             self.lblImage.setOpacity(0)
@@ -355,6 +541,11 @@ class QLabelCircle(QWidget):
             self.runCircleAnimation(count)
 
     def runCircleAnimation(self,count):
+        """ Runs the circle animation. 
+        
+        Keyword arguments:
+        count -- time in seconds which needs to elapse before circle is filled
+        """
         startTime = time.time()
         n_ticks_per_second = 20
         wait_time = 1/(n_ticks_per_second)
@@ -370,22 +561,54 @@ class QLabelCircle(QWidget):
         pass
     
     def hideEvent(self,e):
+        """ Overwritten hide event method. """
         self.hidden = True
         
     def showEvent(self,e):
+        """ Overwritten show event method. """
         self.hidden = False
     
     def setImage(self,image):
+        """ Sets an image to the image widget. 
+        
+        Keyword arguments:
+        image -- QPixmap object to be displayed on the label.        
+        """
         self.lblImage.setPixmap(image,)
         self.lblImage.update()
         self.update()
 
 class QLabelOpaque(QLabel):
+    """
+    QLabel for displaying an image with variable opacity
+    
+    Attributes
+    ----------
+    opacity : float (0 ... 1)
+        opacity of the image.    
+        
+    Methods
+    -------
+    __init__() :
+        Initializing the widget. 
+    setOpacity(opacity) :
+        Sets the opacity of the image.
+    paintEvent(e) :
+        Overwritten paintEvent method.
+    """
     def __init__(self,*args, **kwargs):
+        """ Initializing the widget. """
         super().__init__( *args, **kwargs)
         self.opacity=1
         
     def paintEvent(self,e):
+        """ Overwritten paintEvent method. 
+        
+        Sets and scales and sets opacity of the image.
+        
+        Keyword arguments:
+        e -- sender which triggered the event
+        """
         painter = QtGui.QPainter(self)
         painter.setOpacity(self.opacity)
         if self.pixmap() is not None:
@@ -393,6 +616,7 @@ class QLabelOpaque(QLabel):
             painter.drawPixmap((self.width()-pixmap.width())/2, (self.height()-pixmap.height())/2, pixmap)
     
     def setOpacity(self,opacity):
+        """ Sets the opacity of the image. """
         self.opacity = opacity
 
 if __name__ == '__main__':

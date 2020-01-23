@@ -168,7 +168,7 @@
      <x>0</x>
      <y>0</y>
      <width>1103</width>
-     <height>21</height>
+     <height>22</height>
     </rect>
    </property>
    <property name="styleSheet">
@@ -189,7 +189,7 @@
      <string>Settings</string>
     </property>
     <addaction name="separator"/>
-    <addaction name="actionArtefact_Order"/>
+    <addaction name="actionArtifact_Order"/>
     <addaction name="actionStimulus_Order"/>
    </widget>
    <widget class="QMenu" name="menuStart">
@@ -213,9 +213,9 @@
    <addaction name="menuStop"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
-  <action name="actionArtefact_Order">
+  <action name="actionArtifact_Order">
    <property name="text">
-    <string>Artefact Order</string>
+    <string>Artifact Order</string>
    </property>
   </action>
   <action name="actionStimulus_Order">
