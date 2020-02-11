@@ -30,7 +30,7 @@ class ParallelSender():
         
         ### HAS TO BE ERASED WHEN PARALLEL PORT WORKS FINE
         print(data)
-        #return
+        return
         
         
         

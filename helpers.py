@@ -71,14 +71,16 @@ class TimeTable():
         trialDuration = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','sbTrialDuration'])
         self.stimulusDuration = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','sbStimulusDuration'])
         self.pauseDuration = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','sbPause'])
-        randomizeStimuli = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','cbRandomizeStimuli'])
+        self.randomizeStimuli = self.XML_settingTrial.getValue(['TrialSettings','GeneralSettings','cbRandomizeStimuli'])
         self.amountOfTrials = int(self.XML_artifactOrder.getValue(['AmountOfTrials']))
         self.pauseBetweenTrials = 60*int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Minute']))+int(self.XML_artifactOrder.getValue(['PauseInBetweenTrials','Second']))
         self.amount_of_stimuli = ceil(int(trialDuration)*60/(float(self.stimulusDuration)+float(self.pauseDuration)))
         self.artifacts = list(list(zip(*self.XML_artifactOrder.getChildren(['Order'])))[0])
-        all_stimuli_list = [ele for ele in self.artifacts for _ in range(self.amount_of_stimuli)]
-
-        if int(randomizeStimuli) == Qt.CheckState(Qt.Checked):
+        
+        amount_of_stimuli_per_artifact = ceil(self.amount_of_stimuli/len(self.artifacts))
+        all_stimuli_list = self.artifacts*amount_of_stimuli_per_artifact
+        
+        if int(self.randomizeStimuli) == Qt.CheckState(Qt.Checked):
             random.shuffle(all_stimuli_list)
         self.all_stimuli_list = all_stimuli_list
 
@@ -100,11 +102,12 @@ class TimeTable():
     
     def generateERPStimuliSequence(self):
         prob = float(self.XML_settingTrial.getValue(['TrialSettings','ERP','cbProbability']))
-        complSequence = iter(getCompleteSequence(prob,len(self.all_stimuli_list)))
+        
         lstOrder = []
 
         time = 0      
         for i in range(len(self.artifacts)):
+            complSequence = iter(getCompleteSequence(prob,len(self.all_stimuli_list)))
             lstOrder.append({'start_time':str(time),'end_time':str(time+self.pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
             time+=self.pauseBetweenTrials
                 
@@ -126,11 +129,15 @@ class TimeTable():
         return lstOrder
 
     def generateArtifactStimuliSequence(self):
+        
         lstOrder = []
         time = 0
-        self.all_stimuli_list = iter(self.all_stimuli_list)
+        
         
         for i in range(self.amountOfTrials):
+            if int(self.randomizeStimuli) == Qt.CheckState(Qt.Checked):
+                random.shuffle(self.all_stimuli_list)
+            all_stimuli_list = iter(self.all_stimuli_list)
             if (time != 0):
                 lstOrder.append({'start_time':str(time),'end_time':str(time+self.pauseBetweenTrials),'type':PAUSEBETWEENTRIALSTEXT})
                 time+=self.pauseBetweenTrials
@@ -139,7 +146,7 @@ class TimeTable():
                 lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.pauseDuration)),'type':PAUSETEXT})
                 time+=float(self.pauseDuration)
                 
-                artifact_name = self.all_stimuli_list.__next__()
+                artifact_name = all_stimuli_list.__next__()
                 lstOrder.append({'start_time':str(time),'end_time':str(time+float(self.stimulusDuration)),
                                               'type':artifact_name})
                 time+=float(self.stimulusDuration)

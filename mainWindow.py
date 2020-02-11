@@ -148,7 +148,7 @@ class MainWindow(QMainWindow):
         Connects button click events to different functions.
         """
         uic.loadUi(os.path.join(self.XML_Read.getValue(['Paths','Designer_File_Folder']),'mainWindow_circle.ui'),self)
-        self.actionArtefact_Order.triggered.connect(self.openSettingArtefactOrder)
+        self.actionArtifact_Order.triggered.connect(self.openSettingArtefactOrder)
         self.actionStimulus_Order.triggered.connect(self.openSettingTrial)
         self.actionStart.triggered.connect(self.startPresentationClicked)
         self.actionStart_from_file.triggered.connect(self.startPresentationFromFile)

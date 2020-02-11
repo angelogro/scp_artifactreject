@@ -2,8 +2,8 @@
 	<Paths>
 		<Designer_File_Folder>UIDesignerFiles</Designer_File_Folder>
 		<Resource_Folder>Resources</Resource_Folder>
-		<ArtifactOrder>C:/Users/bbci/Desktop/scp_artifactreject-master/Settings_ArtifactOrder/nils_6cat.xml</ArtifactOrder>
-		<TrialSettings>C:/Users/bbci/Desktop/scp_artifactreject-master/Settings_Trial/5mintrial.xml</TrialSettings>
+		<ArtifactOrder>/home/angelo/Master_Arbeit/Presentation Program/scp_artifactreject/Settings_ArtifactOrder/_newversion</ArtifactOrder>
+		<TrialSettings>/home/angelo/Master_Arbeit/Presentation Program/scp_artifactreject/Settings_Trial/_newversion</TrialSettings>
 		<ArtifactOrderSettingsDefault>Settings_ArtifactOrder</ArtifactOrderSettingsDefault>
 		<TrialSettingsDefault>Settings_Trial</TrialSettingsDefault>
 		<StimulusFilesDefault>Stimulus_Files</StimulusFilesDefault>
